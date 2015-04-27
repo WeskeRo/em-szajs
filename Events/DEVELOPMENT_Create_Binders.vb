@@ -1,7 +1,9 @@
 Dim przelacznik
 przelacznik = Cint(ObjVer.Type)
 Select Case przelacznik
-	Case 183 'Sales&Marketing
+	Case 183 ' Nowy obiekt typu DEVELOPMENT
+	
+		NEW_Development()	
 
 	Case 4 'Production
 
@@ -11,14 +13,17 @@ End Select
 
 
 
+sub dodajDoLog(message)
+		ForAppending = 8
+		 
+		set objFSO = CreateObject("Scripting.FileSystemObject")
+		set objFile = objFSO.OpenTextFile("E:\test\Developent.txt", ForAppending, True)
+	 
+		objFile.WriteLine(message)
+		objFile.Close
+end sub
 
-
-
-
-
-
-
-
+'-------------------------------------------------------
 Sub NEW_Development()
 	Dim idClass_Development: idClass_Development = 1486 ' Development property definition ID
 	Dim idType_InputDoc: idType_InputDoc = 9 ' Input_documents Object Type ID
