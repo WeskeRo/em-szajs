@@ -106,6 +106,21 @@ Sub NEW_Development()
 	
 	'--------------------------------------------------------------------
 	
+	Call Add_SFD_from_template (oPropVals_KartaRoz, 10852)
+	
+	' Files
+	Dim oACL: Set oACL = CreateObject("MFilesAPI.AccessControlList")
+	set oACL = nothing
+	
+	Dim oFiles: Set oFiles = CreateObject("MFilesAPI.SourceObjectFiles")
+	
+	Call Vault.ObjectOperations.CreateNewObjectEx(idType_InputDoc, oPropVals_Input, oFiles, False, True, oACL)
+	Call Vault.ObjectOperations.CreateNewObjectEx(idType_InputDoc, oPropVals_Output, oFiles, False, True, oACL)
+	Call Vault.ObjectOperations.CreateNewObjectEx(idType_InputDoc, oPropVals_Catalog, oFiles, False, True, oACL)
+	Call Vault.ObjectOperations.CreateNewObjectEx(idType_InputDoc, oPropVals_Tests, oFiles, False, True, oACL)
+End Sub
+
+Sub Add_SFD_from_template (Bind_Properties , Template_ID)	
 	
 	Dim oACL: Set oACL = CreateObject("MFilesAPI.AccessControlList")
 	set oACL = nothing
@@ -116,7 +131,7 @@ Sub NEW_Development()
 	
 	'znajdowanie templejta
 	Dim oLookupObj: set oLookupObj = CreateObject("MFilesAPI.ObjVer")
-	oLookupObj.SetIDs 0, 10852, -1 
+	oLookupObj.SetIDs 0, Template_ID, -1 
 
 
 	'Pobieranie pliku z templejta do folderu tymczasowego
@@ -127,7 +142,7 @@ Sub NEW_Development()
 	Dim oObjectFiles : Set oObjectFiles = Vault.ObjectFileOperations.GetFiles(oObjectInfo.ObjVer)		'The GetFiles function will create the Files collection this way :-)
 	
 	If oObjectFiles.Count = 0 Then
-		err.raise mfscriptcancel, "Error: No ObjectFiles found"
+		err.raise mfscriptcancel, "Error: No such !Template found"
 	Else
 		Set oObjectFile = oObjectFiles.Item(1)			
 		Dim szExt : szExt = oObjectFile.Extension 
@@ -145,19 +160,11 @@ Sub NEW_Development()
 		oSourceFile1.Extension = oObjectFile.Extension
 		oFiles1.Add 0, oSourceFile1
 
-		Call Vault.ObjectOperations.CreateNewObjectEx(idType_KartRozw, oPropVals_KartaRoz, oFiles1, true, True, oACL)
+		Call Vault.ObjectOperations.CreateNewObjectEx(0, Bind_Properties, oFiles1, true, True, oACL)
 
 		'Kasowanie pliku tymczasowego
 		Dim fso: Set fso = CreateObject("Scripting.FileSystemObject")
 		fso.DeleteFile szPath
 	end if
-	
-	' Files
-	Dim oFiles: Set oFiles = CreateObject("MFilesAPI.SourceObjectFiles")
-	
-	Call Vault.ObjectOperations.CreateNewObjectEx(idType_InputDoc, oPropVals_Input, oFiles, False, True, oACL)
-	Call Vault.ObjectOperations.CreateNewObjectEx(idType_InputDoc, oPropVals_Output, oFiles, False, True, oACL)
-	Call Vault.ObjectOperations.CreateNewObjectEx(idType_InputDoc, oPropVals_Catalog, oFiles, False, True, oACL)
-	Call Vault.ObjectOperations.CreateNewObjectEx(idType_InputDoc, oPropVals_Tests, oFiles, False, True, oACL)
 
 End Sub
