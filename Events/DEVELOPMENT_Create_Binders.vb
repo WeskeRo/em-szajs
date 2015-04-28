@@ -14,13 +14,13 @@ End Select
 
 
 sub dodajDoLog(message)
-		ForAppending = 8
-		 
-		set objFSO = CreateObject("Scripting.FileSystemObject")
-		set objFile = objFSO.OpenTextFile("E:\test\Developent.txt", ForAppending, True)
-	 
-		objFile.WriteLine(message)
-		objFile.Close
+	ForAppending = 8
+	
+	set objFSO = CreateObject("Scripting.FileSystemObject")
+	set objFile = objFSO.OpenTextFile("E:\test\Developent.txt", ForAppending, True)
+	
+	objFile.WriteLine(message)
+	objFile.Close
 end sub
 
 '-------------------------------------------------------
@@ -165,6 +165,79 @@ Sub Add_SFD_from_template (Bind_Properties , Template_ID)
 		'Kasowanie pliku tymczasowego
 		Dim fso: Set fso = CreateObject("Scripting.FileSystemObject")
 		fso.DeleteFile szPath
+	end if
+
+End Sub
+
+Sub Add_MFD_from_template (Bind_Properties , Template_ID)	
+	
+	Dim oACL: Set oACL = CreateObject("MFilesAPI.AccessControlList")
+	set oACL = nothing
+	
+	'--------------------------------------------------------------------
+	
+	'znajdowanie templejta
+	Dim oLookupObj: set oLookupObj = CreateObject("MFilesAPI.ObjVer")
+	oLookupObj.SetIDs 0, Template_ID, -1 
+	
+	'Pobieranie pliku z templejta do folderu tymczasowego
+	Dim oObjectInfo : Set oObjectInfo = CreateObject("MFilesAPI.ObjectVersion")
+	Set oObjectInfo = Vault.ObjectOperations.GetObjectInfo(oLookupObj, True, False)
+	Dim oObjectFile : Set oObjectFile = CreateObject("MFilesAPI.ObjectFile")
+	'Dim oObjectFiles : Set oObjectFiles = CreateObject("MFilesAPI.ObjectFiles")				'This operation is not allowed for ObjectFiles, but not necessary either (nor is it above!)
+	Dim oObjectFiles : Set oObjectFiles = Vault.ObjectFileOperations.GetFiles(oObjectInfo.ObjVer)		'The GetFiles function will create the Files collection this way :-)
+	
+	If oObjectFiles.Count = 0 Then
+		err.raise mfscriptcancel, "Error: No such !Template found on no files in template."
+	Else
+		'Dim NowyDokumentMFD
+		'Set MFD = Vault.ObjectOperations.CreateNewObjectEx(9, Bind_Properties, oFiles1, False, True, oACL)'
+		Dim oFiles1: Set oFiles1 = CreateObject("MFilesAPI.SourceObjectFiles")
+		
+		
+		Dim adresy_plikow()
+		ReDim adresy_plikow(0)
+		
+		
+		ReDim Preserve numbers(WskaznikTablicy+1)
+		
+		
+		
+		For i = 1 To oObjectFiles.Count
+		
+			ReDim Preserve adresy_plikow(i)
+			adresy_plikow(i)=szPath
+			
+			
+			Set oObjectFile = oObjectFiles.Item(i)			
+			Dim szExt : szExt = oObjectFile.Extension 
+			Dim szName : szName = oObjectFile.GetNameForFileSystem
+			Dim szID : szID = oObjectFile.ID
+			Dim szVersion : szVersion = oObjectFile.Version
+			Dim szPath: szPath = "E:\test\TEMP\"	& szName
+			adresy_plikow(i)=szPath
+			Vault.ObjectFileOperations.DownloadFile szID, szVersion, szPath					' Download the file. The path must be available on the server!
+			
+			'Upload nowego pliku na serwer i zakładanie nowego dokumentu
+			
+			Dim oSourceFile1: Set oSourceFile1 = CreateObject("MFilesAPI.SourceObjectFile")
+			oSourceFile1.SourceFilePath = szPath
+			oSourceFile1.Title = oObjectFile.Title
+			oSourceFile1.Extension = oObjectFile.Extension
+			oFiles1.Add -1, oSourceFile1
+			dodajDoLog(oObjectFile.GetNameForFileSystem)
+			
+		Next
+		
+		Call Vault.ObjectOperations.CreateNewObjectEx(0, Bind_Properties, oFiles1, False, True, oACL)
+		
+		'Kasowanie plików tymczasowych
+		Dim fso: Set fso = CreateObject("Scripting.FileSystemObject")
+		For i = 1 To UBound(adresy_plikow) 
+	
+			fso.DeleteFile adresy_plikow(i)
+		
+		Next
 	end if
 
 End Sub
