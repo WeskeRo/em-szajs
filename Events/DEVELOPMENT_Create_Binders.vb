@@ -241,3 +241,46 @@ Sub Add_MFD_from_template (Bind_Properties , Template_ID)
 	end if
 
 End Sub
+
+
+Function WyszukajProfilKlienta(LeadID, ClientID)
+	
+	Const iOTDocument = 0 'Builtin, do not change
+	Const iPDClass  = 100 'Builtin, do not change
+	Const iClassManual  = 0 'ID kategorii dokumentu "0-Unclassified document"
+
+	' Build the search conditions
+	Dim oOneSC: Set oOneSC = CreateObject("MFilesAPI.SearchCondition")
+	Dim oSCs: Set oSCs = CreateObject("MFilesAPI.SearchConditions")
+
+	' Deleted = no
+	oOneSC.ConditionType = MFConditionTypeEqual
+	oOneSC.Expression.DataStatusValueType = MFStatusTypeDeleted
+	oOneSC.TypedValue.SetValue MFDatatypeBoolean, False
+	oSCs.Add -1, oOneSC
+
+	' Object type = Document
+	oOneSC.ConditionType = MFConditionTypeEqual
+	oOneSC.Expression.DataStatusValueType = MFStatusTypeObjectTypeID
+	oOneSC.TypedValue.SetValue MFDatatypeLookup, iOTDocument
+	oScs.Add -1, oOneSC
+	
+	' Class = Manuals (general)
+	oOneSC.ConditionType = MFConditionTypeEqual
+	oOneSC.Expression.DataPropertyValuePropertyDef = iPDClass
+	oOneSC.TypedValue.SetValue MFDatatypeLookup, iClassManual
+	oScs.Add -1, oOneSC
+	
+	' Customer = ClientID
+	oOneSC.ConditionType = MFConditionTypeEqual
+	oOneSC.Expression.SetPropertyValueExpression 1457,  MFilesAPI.MFParentChildBehavior.MFParentChildBehaviorNone, Nothing
+	oOneSC.TypedValue.SetValue MFDatatypeLookup, 1011
+	oScs.Add -1, oOneSC
+
+	
+	
+	Dim oSearchResults
+	Set oSearchResults = Vault.ObjectSearchOperations.SearchForObjectsByConditions(oScs, MFSearchFlagNone, False)
+	err.raise mfscriptcancel, "znaleziono plik " & oSearchResults.Count
+	
+End Function
