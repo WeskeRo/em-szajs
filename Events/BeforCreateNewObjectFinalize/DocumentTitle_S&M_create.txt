@@ -1,0 +1,150 @@
+if( ObjVer.Type = 0) then
+
+	Dim Temp_value
+	Dim Temp_value1
+	Dim Temp_value2
+	Dim Temp_value3
+	Dim oLastModifiedBy
+
+	Dim ID_Kategoria
+	Set ID_Kategoria = Vault.ObjectPropertyOperations.GetProperty( ObjVer, 100).Value.GetValueAsLookup
+
+	'Dim ID_GrupaKategorii
+	'Set ID_GrupaKategorii = Vault.ObjectPropertyOperations.GetProperty( ObjVer, 2).Value.GetValueAsLookup
+	
+	'if( ID_Kategoria.DisplayID = "35") then
+	'	Err.Raise mfscriptcancel, "ID-35"
+	'End if
+
+
+
+If IsTemplate(PropertyValues) Then	
+	
+	else
+	if( ID_Kategoria.DisplayID = "20") then
+		
+		dodajDoLog("dzia³a sprawdzanie pierwsze - "& Temp_value3)
+		Set myPropertyValue= CreateObject("MFilesAPI.PropertyValue")
+		myPropertyValue.PropertyDef = 1563
+		myPropertyValue.TypedValue.SetValue MFDatatypeText , Temp_value3
+		Vault.ObjectPropertyOperations.SetProperty ObjVer,myPropertyValue
+
+		Set myPropertyValue2= CreateObject("MFilesAPI.PropertyValue")
+		myPropertyValue2.PropertyDef = 1562
+		myPropertyValue2.TypedValue.SetValue MFDatatypeInteger , 1
+		Vault.ObjectPropertyOperations.SetProperty ObjVer,myPropertyValue2
+
+		Set myPropertyValue1= CreateObject("MFilesAPI.PropertyValue")
+		myPropertyValue1.PropertyDef = 1561
+		myPropertyValue1.TypedValue.SetValue MFDatatypeBoolean , false
+		Vault.ObjectPropertyOperations.SetProperty ObjVer,myPropertyValue1
+	
+		Temp_value = Vault.ObjectPropertyOperations.GetProperty( ObjVer, 1560).TypedValue.GetValueAsLocalizedText
+		Temp_value1 = Vault.ObjectPropertyOperations.GetProperty( ObjVer, 1484).TypedValue.GetValueAsLocalizedText
+		Temp_value2 = split( Temp_value1,"/")
+		if ( IsNull(Vault.ObjectPropertyOperations.GetProperty( ObjVer, 1560).Value) or IsEmpty(Vault.ObjectPropertyOperations.GetProperty( ObjVer, 1560).Value)) then
+				Temp_value3 = "MT/" & Temp_value2(2) & "/" & Temp_value2(1) & "_Tech/" & Temp_value2(0) & "/" &  "1"
+			else
+				Temp_value3 = "MT/" & Temp_value2(2) & "/" & Temp_value2(1) & "_Tech/" & Temp_value2(0) & "/" & Temp_value & "1"
+		end if
+		dodajDoLog("dzia³a sprawdzanie po wszystkim - "& Temp_value3)
+		Set myPropertyValue= CreateObject("MFilesAPI.PropertyValue")
+		myPropertyValue.PropertyDef = 1563
+		myPropertyValue.TypedValue.SetValue MFDatatypeText , Temp_value3
+		Vault.ObjectPropertyOperations.SetProperty ObjVer,myPropertyValue
+
+
+			
+		' Set last modified by user.
+
+		Set oLastModifiedBy = CreateObject("MFilesAPI.TypedValue")
+		oLastModifiedBy.SetValue MFDatatypeLookup, CurrentUserID
+			
+		Vault.ObjectPropertyOperations.SetLastModificationInfoAdmin ObjVer, True, oLastModifiedBy, False, Nothing	
+
+	end if
+	if( ID_Kategoria.DisplayID = "21") then
+			Temp_value = Vault.ObjectPropertyOperations.GetProperty( ObjVer, 1560).TypedValue.GetValueAsLocalizedText
+			Temp_value1 = Vault.ObjectPropertyOperations.GetProperty( ObjVer, 1484).TypedValue.GetValueAsLocalizedText
+			Temp_value2 = split( Temp_value1,"/")
+			if ( IsNull(Vault.ObjectPropertyOperations.GetProperty( ObjVer, 1560).Value) or IsEmpty(Vault.ObjectPropertyOperations.GetProperty( ObjVer, 1560).Value)) then
+				Temp_value3 = "MT/" & Temp_value2(2) & "/" & Temp_value2(1) & "/" & Temp_value2(0) & "/" &  "1"
+			else
+				Temp_value3 = "MT/" & Temp_value2(2) & "/" & Temp_value2(1) & "/" & Temp_value2(0) & "/" & Temp_value & "1"
+			end if
+		dodajDoLog("dzia³a sprawdzanie tutj? - "& Temp_value3)
+		Set myPropertyValue= CreateObject("MFilesAPI.PropertyValue")
+		myPropertyValue.PropertyDef = 1563
+		myPropertyValue.TypedValue.SetValue MFDatatypeText , Temp_value3
+		Vault.ObjectPropertyOperations.SetProperty ObjVer,myPropertyValue
+
+		Set myPropertyValue2= CreateObject("MFilesAPI.PropertyValue")
+		myPropertyValue2.PropertyDef = 1562
+		myPropertyValue2.TypedValue.SetValue MFDatatypeInteger , 1
+		Vault.ObjectPropertyOperations.SetProperty ObjVer,myPropertyValue2
+
+		Set myPropertyValue1= CreateObject("MFilesAPI.PropertyValue")
+		myPropertyValue1.PropertyDef = 1561
+		myPropertyValue1.TypedValue.SetValue MFDatatypeBoolean , false
+		Vault.ObjectPropertyOperations.SetProperty ObjVer,myPropertyValue1
+	
+dodajDoLog("dzia³a sprawdzanie tutj te¿? - "& Temp_value3)
+			
+		'Set last modified by user.
+		Set oLastModifiedBy = CreateObject("MFilesAPI.TypedValue")
+		oLastModifiedBy.SetValue MFDatatypeLookup, CurrentUserID	
+		Vault.ObjectPropertyOperations.SetLastModificationInfoAdmin ObjVer, True, oLastModifiedBy, False, Nothing	
+
+	end if
+end if
+
+if (( ID_Kategoria.DisplayID => 18 and ID_Kategoria.DisplayID <= 42) or (ID_Kategoria.DisplayID = 131) or (ID_Kategoria.DisplayID = 139) ) then
+	
+	if ( ID_Kategoria.DisplayID <> 28 and ID_Kategoria.DisplayID <> 29  and ID_Kategoria.DisplayID <> 31 and ID_Kategoria.DisplayID <> 34 and ID_Kategoria.DisplayID <> 39 and ID_Kategoria.DisplayID <> 40 ) then
+		
+		Set myPropertyValue_Customer= CreateObject("MFilesAPI.PropertyValue")
+		myPropertyValue_Customer.PropertyDef = 1457
+		myPropertyValue_Customer.TypedValue.SetValue MFDatatypeLookup , null
+		Vault.ObjectPropertyOperations.SetProperty ObjVer,myPropertyValue_Customer
+		
+		
+	'	Err.Raise mfscriptcancel, "Dokument nale¿y do kategorii z której nalezy wyczyœciæ pole Customer"
+	end if
+
+end if
+
+end if
+
+
+'   ZAPIS DANYCH DO LOGA   ////////////////////
+sub dodajDoLog(message)
+		ForAppending = 8
+		 
+		set objFSO = CreateObject("Scripting.FileSystemObject")
+		set objFile = objFSO.OpenTextFile("E:\test\log_S&M_basic.txt", ForAppending, True)
+	 
+		objFile.WriteLine(message)
+		objFile.Close
+end sub
+
+Function GetPropertyFromPropertyValues(propertyValues1, propertyIdToFind)
+    GetPropertyFromPropertyValues= false
+    For Each propertyValue in propertyValues1
+        If propertyValue.PropertyDef = propertyIdToFind Then
+            GetPropertyFromPropertyValues= true
+            Exit Function
+        End If
+    Next
+End Function
+
+Function IsTemplate(propertyValues2)
+    IsTemplate = False
+    Dim propertyValue
+    propertyValue = GetPropertyFromPropertyValues(propertyValues2, 37)
+    If propertyValue = false Then
+	IsTemplate = false
+        Exit Function
+    End If
+    'IsTemplate = (LCase(propertyValue.Value.DisplayValue) = "yes")
+	IsTemplate = true
+End Function

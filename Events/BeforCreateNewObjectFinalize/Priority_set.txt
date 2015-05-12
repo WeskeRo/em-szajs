@@ -1,0 +1,33 @@
+if( ObjVer.Type = 206) then
+Dim oTestNumber
+Dim oTestNumber2
+
+set oTestNumber2 = Vault.ValueListItemOperations.GetValueListItemByDisplayID(211, "1")
+
+
+Set objVersionAndProps = Vault.ObjectPropertyOperations.GetProperties(ObjVer)
+oTestNumber = objVersionAndProps.SearchForProperty(100).TypedValue.GetValueAsLocalizedText
+
+nazwaZm = Badanie_Priorytet   'Nazwa zmiennej generowana na podstawie nazwy typu obiektu oraz aktualnego roku tworzenia obiektu
+	licznik = VaultSharedVariables(nazwaZm)
+
+	if IsNull(oTestNumber2) or IsEmpty(oTestNumber2) or oTestNumber2.Name = "" or oTestNumber2.Name = 0 Then ' wartoœæ jest niezainicjowana lub zerowa
+		VaultSharedVariables(nazwaZm) = 100
+		oTestNumber2.Name=100
+	end if
+	'dodajDoLog("test - " &licznik )
+'	VaultSharedVariables(nazwaZm) = 
+	licznik=oTestNumber2.Name+100
+	priorytet =  Right("000000" & oTestNumber2.Name,5)
+
+
+			Set myPropertyValue= CreateObject("MFilesAPI.PropertyValue")
+		myPropertyValue.PropertyDef = 11615
+		myPropertyValue.TypedValue.SetValue MFDatatypeText , priorytet
+		Vault.ObjectPropertyOperations.SetProperty ObjVer,myPropertyValue
+
+                    oTestNumber2.Name = licznik
+                    Vault.ValueListItemOperations.UpdateValueListItem (oTestNumber2 )
+
+
+	end if

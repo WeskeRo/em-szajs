@@ -1,0 +1,163 @@
+if( CurrentUserID <> 42 AND CurrentUserID <> -101 ) then
+
+	if(ObjVer.Type = 102 ) then
+		dodajDoLog("Kontrola wartoœci zerowych w polach synchronizowanych z optim¹ - BeforeCreateNewObjectFinalize")
+					Set oPropertyPHONE1 = CreateObject("MFilesAPI.PropertyValue")
+
+
+
+
+
+'----------------NAZWA2-------------
+		if ( IsNull(Vault.ObjectPropertyOperations.GetProperty(ObjVer, 11575).Value)or IsEmpty(Vault.ObjectPropertyOperations.GetProperty(ObjVer, 11575).Value)) then
+
+			oPropertyPHONE1.PropertyDef = 11575
+			oPropertyPHONE1.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeText, " "	
+			Vault.ObjectPropertyOperations.SetProperty ObjVer, oPropertyPHONE1
+
+		End if
+	
+
+	'----------------NAZWA3-------------
+		if ( IsNull(Vault.ObjectPropertyOperations.GetProperty(ObjVer, 11576).Value)or IsEmpty(Vault.ObjectPropertyOperations.GetProperty(ObjVer, 11576).Value)) then
+
+			oPropertyPHONE1.PropertyDef = 11576
+			oPropertyPHONE1.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeText, " -=-mFiles-=-"	
+			Vault.ObjectPropertyOperations.SetProperty ObjVer, oPropertyPHONE1
+		else
+			Dim wartosc
+			wartosc = Vault.ObjectPropertyOperations.GetProperty(ObjVer, 11576).TypedValue.GetValueAsLocalizedText
+			oPropertyPHONE1.PropertyDef = 11576
+			oPropertyPHONE1.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeText, wartosc & " -=-mFiles-=-"	
+			Vault.ObjectPropertyOperations.SetProperty ObjVer, oPropertyPHONE1
+
+		End if
+	
+
+
+
+
+
+'----------------ULICA-------------
+		if ( IsNull(Vault.ObjectPropertyOperations.GetProperty(ObjVer, 1347).Value)or IsEmpty(Vault.ObjectPropertyOperations.GetProperty(ObjVer, 1347).Value)) then
+
+
+	
+			oPropertyPHONE1.PropertyDef = 1347
+			oPropertyPHONE1.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeText, " "	
+			Vault.ObjectPropertyOperations.SetProperty ObjVer, oPropertyPHONE1
+
+		End if
+	
+	'----------------Numer budynku-------------
+		if ( IsNull(Vault.ObjectPropertyOperations.GetProperty(ObjVer, 1362).Value)or IsEmpty(Vault.ObjectPropertyOperations.GetProperty(ObjVer, 1362).Value)) then
+
+	
+			oPropertyPHONE1.PropertyDef = 1362
+			oPropertyPHONE1.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeText, " "	
+			Vault.ObjectPropertyOperations.SetProperty ObjVer, oPropertyPHONE1
+
+		End if
+		'----------------Numer biura-------------
+		if ( IsNull(Vault.ObjectPropertyOperations.GetProperty(ObjVer, 1363).Value)or IsEmpty(Vault.ObjectPropertyOperations.GetProperty(ObjVer, 1363).Value)) then
+	
+			oPropertyPHONE1.PropertyDef = 1363
+			oPropertyPHONE1.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeText, " "	
+			Vault.ObjectPropertyOperations.SetProperty ObjVer, oPropertyPHONE1
+
+		End if
+				'----------------MIASTO-------------
+		if (IsNull(Vault.ObjectPropertyOperations.GetProperty(ObjVer, 1342).Value)or IsEmpty(Vault.ObjectPropertyOperations.GetProperty(ObjVer, 1342).Value)) then
+	
+			oPropertyPHONE1.PropertyDef = 1342
+			oPropertyPHONE1.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeText, " "	
+			Vault.ObjectPropertyOperations.SetProperty ObjVer, oPropertyPHONE1
+
+		End if
+				'----------------POST CODE-------------
+		if (IsNull(Vault.ObjectPropertyOperations.GetProperty(ObjVer, 1361).Value)or IsEmpty(Vault.ObjectPropertyOperations.GetProperty(ObjVer, 1361).Value)) then
+	dodajDoLog("KOD POCZTOWY PUSTYY")
+			oPropertyPHONE1.PropertyDef = 1361
+			oPropertyPHONE1.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeText, " "	
+			Vault.ObjectPropertyOperations.SetProperty ObjVer, oPropertyPHONE1
+
+		End if
+
+				'----------------Numer NIP-------------
+		if ( IsNull(Vault.ObjectPropertyOperations.GetProperty(ObjVer, 1354).Value)or IsEmpty(Vault.ObjectPropertyOperations.GetProperty(ObjVer, 1354).Value)) then
+	dodajDoLog("NIP PUSTYY")	
+			oPropertyPHONE1.PropertyDef = 1354
+			oPropertyPHONE1.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeText, " "	
+			Vault.ObjectPropertyOperations.SetProperty ObjVer, oPropertyPHONE1
+
+		End if
+						'----------------REGON-------------
+		if ( IsNull(Vault.ObjectPropertyOperations.GetProperty(ObjVer, 1355).Value)or IsEmpty(Vault.ObjectPropertyOperations.GetProperty(ObjVer, 1355).Value)) then
+	dodajDoLog("REGON PUSTYY")	
+			oPropertyPHONE1.PropertyDef = 1355
+			oPropertyPHONE1.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeText, " "	
+			Vault.ObjectPropertyOperations.SetProperty ObjVer, oPropertyPHONE1
+
+		End if
+				'----------------PHONE1------------
+		if ( IsNull(Vault.ObjectPropertyOperations.GetProperty(ObjVer, 1529).Value)or IsEmpty(Vault.ObjectPropertyOperations.GetProperty(ObjVer, 1529).Value)) then
+		dodajDoLog("PHONE1 PUSTYY")
+			oPropertyPHONE1.PropertyDef = 1529
+			oPropertyPHONE1.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeText, " "	
+			Vault.ObjectPropertyOperations.SetProperty ObjVer, oPropertyPHONE1
+
+		End if
+
+				'----------------PHONE2------------
+		if( IsNull(Vault.ObjectPropertyOperations.GetProperty(ObjVer, 1530).Value)or IsEmpty(Vault.ObjectPropertyOperations.GetProperty(ObjVer, 1530).Value)) then
+		dodajDoLog("PHONE2 PUSTYY")	
+			oPropertyPHONE1.PropertyDef = 1530
+
+			oPropertyPHONE1.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeText, " "
+			Vault.ObjectPropertyOperations.SetProperty ObjVer, oPropertyPHONE1
+
+
+		End if
+				'----------------FAX-------------
+		if ( IsNull(Vault.ObjectPropertyOperations.GetProperty(ObjVer, 1537).Value)or IsEmpty(Vault.ObjectPropertyOperations.GetProperty(ObjVer, 1537).Value)) then
+		dodajDoLog("fax PUSTYY")	
+			oPropertyPHONE1.PropertyDef = 1537
+			oPropertyPHONE1.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeText, " "	
+			Vault.ObjectPropertyOperations.SetProperty ObjVer, oPropertyPHONE1
+
+		End if
+
+				'----------------EMAIL------------
+		if ( IsNull(Vault.ObjectPropertyOperations.GetProperty(ObjVer, 1541).Value)or IsEmpty(Vault.ObjectPropertyOperations.GetProperty(ObjVer, 1541).Value)) then
+				dodajDoLog("email PUSTYY")
+			oPropertyPHONE1.PropertyDef = 1541
+			oPropertyPHONE1.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeText, " "	
+			Vault.ObjectPropertyOperations.SetProperty ObjVer, oPropertyPHONE1
+
+		End if
+
+				'----------------URL------------
+		if ( IsNull(Vault.ObjectPropertyOperations.GetProperty(ObjVer, 1545).Value)or IsEmpty(Vault.ObjectPropertyOperations.GetProperty(ObjVer, 1545).Value)) then	
+					dodajDoLog("url PUSTYY")
+			oPropertyPHONE1.PropertyDef = 1545
+			oPropertyPHONE1.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeText, " "	
+			Vault.ObjectPropertyOperations.SetProperty ObjVer, oPropertyPHONE1
+
+		End if
+
+	End if
+
+
+
+End if
+
+
+sub dodajDoLog(message)
+		ForAppending = 8
+		 
+		set objFSO = CreateObject("Scripting.FileSystemObject")
+		set objFile = objFSO.OpenTextFile("E:\test\log2.txt", ForAppending, True)
+	 
+		objFile.WriteLine(message)
+		objFile.Close
+end sub

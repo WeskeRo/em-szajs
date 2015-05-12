@@ -1,0 +1,132 @@
+'Wype³nianie metadanej "Action" w obiektach.
+'
+'
+' 114 - Production Process
+' 115 - Product
+' 182 - Sales Lead
+' 206 - Zlecenie na test
+'
+'
+'
+
+if(ObjVer.Type = 114 or ObjVer.Type = 115 or ObjVer.Type = 182 or ObjVer.Type = 206) then
+
+	Set myPropertyValueACTION = CreateObject("MFilesAPI.PropertyValue")
+	myPropertyValueAction.PropertyDef = 11585
+	myPropertyValueAction.TypedValue.SetValue MFDatatypeLookup , 10
+	Vault.ObjectPropertyOperations.SetProperty ObjVer,myPropertyValueAction
+
+	dim metadana
+	przelacznik = Cint(ObjVer.Type)
+	Select Case przelacznik
+		Case 114
+			metadana = 11604
+		Case 115
+			metadana = 11604
+		Case 182
+			metadana = 1455
+		Case 206
+			metadana = 11604
+	End Select
+
+	dim ObiektWypluty
+	Set ObiektWypluty = znajdzOsobe (metadana, ObjVer) 
+
+	Dim oManager	
+	Set oManager = Vault.ObjectPropertyOperations.GetProperty( ObiektWypluty.ObjVer, 1214).TypedValue.GetValueAsLookup
+
+	'Create ObjID
+	dim oObjID: Set oObjID = CreateObject("MFilesAPI.ObjID")
+	oObjID.ID   =  oManager.item 'ID for related Member object
+	oObjID.Type =  oManager.ObjectType 'related member ObjType
+
+	'Get Latest version of external object
+	dim oMember_ObjVer
+	set oMember_ObjVer = vault.ObjectOperations.GetLatestObjVer(oObjID,true)
+
+
+	Dim oLookupManager: Set oLookupManager = CreateObject("MFilesAPI.Lookup")
+
+	oLookupManager.ObjectType = 103 ' ID of your external object type
+	oLookupManager.Item = oManager.item ' ID of specific object
+
+	Dim oPropValManager: Set oPropValManager = PropertyValues.SearchForProperty( 1162 )
+	oPropValManager.Value.SetValueToLookup oLookupManager
+	Vault.ObjectPropertyOperations.SetProperty ObjVer, oPropValManager
+	dodajDoLog("Ustawi³em Managera")
+
+
+
+'------------------------------------------
+end if 'koniec ifa sprawdzaj¹cego czy Obiekt powinien mieæ ustawionego Managera
+
+
+
+
+
+
+'   ZAPIS DANYCH DO LOGA   ////////////////////
+sub dodajDoLog(message)
+		ForAppending = 8
+		 
+		set objFSO = CreateObject("Scripting.FileSystemObject")
+		set objFile = objFSO.OpenTextFile("E:\test\ObjectCreate_Action_Manager_Fill.txt", ForAppending, True)
+	 
+		objFile.WriteLine(message)
+		objFile.Close
+end sub
+
+
+
+
+Function znajdzOsobe(ID_WLASCIWOSCI, oOBJ_VER)
+
+Dim iPropertyId 
+
+'ID w³aœciwoœci po ktorej bedziemy poszukiwaæ obiektu podrzêdnego
+iPropertyId = ID_WLASCIWOSCI
+
+Dim myPropertyValues
+Dim myPropertyValue
+dodajDoLog("Wszed³em do funkcji")
+'Odszukanie wartoœci pola ID_WLASCIWOSCI
+
+
+'Get the value as lookup reference.
+Dim oLookUpRef	
+Set oLookUpRef = Vault.ObjectPropertyOperations.GetProperty( oOBJ_VER, iPropertyId).TypedValue.GetValueAsLookup	
+
+
+'Create ObjID
+dim oObjID: Set oObjID = CreateObject("MFilesAPI.ObjID")
+oObjID.ID   =  oLookUpRef.item 'ID for related Member object
+oObjID.Type =  oLookUpRef.ObjectType 'related member ObjType
+
+
+	' Initialize an array of search conditions.
+Dim oSearchConditions1: Set oSearchConditions1 = CreateObject("MFilesAPI.SearchConditions")  
+
+' Create a search condition for the object class (i.e., document in this case).
+Dim oSearchCondition1: Set oSearchCondition1 = CreateObject("MFilesAPI.SearchCondition") 
+oSearchCondition1.ConditionType = MFilesAPI.MFConditionType.MFConditionTypeEqual
+oSearchCondition1.Expression.DataStatusValueType = MFStatusTypeObjectID
+oSearchCondition1.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeInteger, oLookUpRef.item
+oSearchConditions1.Add -1, oSearchCondition1
+
+Dim oSearchCondition2: Set oSearchCondition2 = CreateObject("MFilesAPI.SearchCondition") 
+oSearchCondition2.ConditionType = MFilesAPI.MFConditionType.MFConditionTypeEqual
+oSearchCondition2.Expression.DataStatusValueType = MFStatusTypeObjectTypeID
+oSearchCondition2.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeLookup, 103
+oSearchConditions1.Add -1, oSearchCondition2
+
+
+Dim oObjectVersions1
+Set oObjectVersions1 = Vault.ObjectSearchOperations.SearchForObjectsByConditions ( oSearchConditions1, MFilesAPI.MFSearchFlags.MFSearchFlagNone, False)
+dodajDoLog("Znalaz³em Responsible Person dla nowego obiektu - "& oObjectVersions1.Count)
+Set znajdzOsobe = oObjectVersions1.Item(1)
+'-------------wypluj obiekt znaleziony --------------
+
+
+end Function
+
+'-------
