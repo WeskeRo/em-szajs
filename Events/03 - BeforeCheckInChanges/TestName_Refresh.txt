@@ -1,0 +1,89 @@
+if( CurrentUserID <> 42 AND CurrentUserID <> -101) then
+	Dim ID_Kategoria
+	Set ID_Kategoria = Vault.ObjectPropertyOperations.GetProperty( ObjVer, 100).Value.GetValueAsLookup
+	if (ObjVer.Type = 206) then
+		dodajDoLog("ID Kategorii dokumentu - "&ID_Kategoria.DisplayID)
+		Set myTemplate= CreateObject("MFilesAPI.PropertyValues")
+		set myTemplate = Vault.ObjectPropertyOperations.getProperties(ObjVer)
+	
+		If (IsTemplate(myTemplate)) Then	
+			'	Err.Raise mfscriptcancel, "template = true"
+		else
+			if(ObjVer.Version>1)then
+	
+				Dim staryObjVer
+				Set staryObjVer = ObjVer.Clone()
+				dim ver
+				ver= staryObjVer.Version
+				ver=ver-1 
+				staryObjVer.Version = ver 
+							
+				Dim ID_Kategoria_old
+				Set ID_Kategoria_old = Vault.ObjectPropertyOperations.GetProperty( staryObjVer, 100).Value.GetValueAsLookup
+	
+				if ID_Kategoria_old.DisplayID <> ID_Kategoria.DisplayID then
+	
+	
+					Dim oTestNumber
+					Set objVersionAndProps = Vault.ObjectPropertyOperations.GetProperties(ObjVer)
+					oTestNumber = objVersionAndProps.SearchForProperty(100).TypedValue.GetValueAsLocalizedText
+		
+					nazwaZm = "ZT/" & oTestNumber &"/"& Year(Date())   'Nazwa zmiennej generowana na podstawie nazwy typu obiektu oraz aktualnego roku tworzenia obiektu
+					licznik = VaultSharedVariables(nazwaZm)
+		
+					if IsNull(licznik) or IsEmpty(licznik) or licznik = "" Then ' wartoœæ jest niezainicjowana lub zerowa
+						licznik = 1
+					end if
+					'dodajDoLog("test - " &licznik )	
+		
+		
+					Temp_value = Vault.ObjectPropertyOperations.GetProperty( ObjVer, 11610).TypedValue.GetValueAsLocalizedText
+					Temp_value2 = split( Temp_value,"/")
+				
+					Temp_value3 = Temp_value2(0) & "/" & Vault.ObjectPropertyOperations.GetProperty( ObjVer, 100).Value.GetValueAsLocalizedText & "/" & Temp_value2(2) & "/" & Right("00" & licznik,3)
+		
+					Set myPropertyValue3= CreateObject("MFilesAPI.PropertyValue")
+					myPropertyValue3.PropertyDef = 11610
+					myPropertyValue3.TypedValue.SetValue MFDatatypeText , Temp_value3
+					Vault.ObjectPropertyOperations.SetProperty ObjVer,myPropertyValue3
+
+
+					VaultSharedVariables(nazwaZm) = licznik+1
+					
+				end if
+			end if 'If od DOCUMENT check
+		end if 'If versja wiêksza od 1
+	end if 'If od TEMPLATE check
+
+	dodajDoLog( Now & " - " & nazwaZm & " -- " & Temp_value3)	
+end if 
+
+'   ZAPIS DANYCH DO LOGA   ////////////////////
+sub dodajDoLog(message)
+		ForAppending = 8 
+		set objFSO = CreateObject("Scripting.FileSystemObject")
+		set objFile = objFSO.OpenTextFile("E:\test\TestName_REFRESH.txt", ForAppending, True)
+		objFile.WriteLine(message)
+		objFile.Close
+end sub
+
+Function GetPropertyFromPropertyValues(propertyValues2, propertyIdToFind)
+	GetPropertyFromPropertyValues= false
+	For Each propertyValue in propertyValues2
+		If propertyValue.PropertyDef = propertyIdToFind Then
+			GetPropertyFromPropertyValues= true
+			Exit Function
+		End If
+	Next
+End Function
+
+Function IsTemplate(propertyValues1)
+	IsTemplate = Null
+	Dim propertyValue
+	propertyValue = GetPropertyFromPropertyValues(propertyValues1, 37)
+	If propertyValue = false Then
+		IsTemplate = false
+		Exit Function
+	End If
+	IsTemplate = true
+End Function

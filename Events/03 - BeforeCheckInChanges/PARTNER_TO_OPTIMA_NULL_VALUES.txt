@@ -1,0 +1,168 @@
+if( CurrentUserID <> 42 AND CurrentUserID <> -101) then
+Dim ID_Kategoria
+Set ID_Kategoria = Vault.ObjectPropertyOperations.GetProperty( ObjVer, 100).Value.GetValueAsLookup
+if (ID_Kategoria.DisplayID = "20" or ID_Kategoria.DisplayID = "21" ) then
+	dodajDoLog("ID Kategorii dokumentu - "&ID_Kategoria.DisplayID)
+	Set myTemplate= CreateObject("MFilesAPI.PropertyValues")
+	set myTemplate = Vault.ObjectPropertyOperations.getProperties(ObjVer)
+	If (IsTemplate(myTemplate)) Then	
+	'	Err.Raise mfscriptcancel, "template = true"
+	else
+		if(ObjVer.Version>1)then
+			if(ObjVer.Type = 0) then
+				check1 = Vault.ObjectPropertyOperations.GetProperty( ObjVer, 100).TypedValue.GetValueAsLocalizedText
+					Dim Temp_value
+					Dim Temp_value1
+					Dim Temp_value2
+					Dim Temp_value3
+					Dim Temp_value4
+		
+					Dim oLastModifiedBy
+
+						Dim staryObjVer
+						Set staryObjVer = ObjVer.Clone()
+						dim ver
+						ver= staryObjVer.Version
+						ver=ver-1 
+						staryObjVer.Version = ver 
+						
+						Dim ID_Kategoria_old
+						Set ID_Kategoria_old = Vault.ObjectPropertyOperations.GetProperty( staryObjVer, 100).Value.GetValueAsLookup
+
+						dim Variant_obecny
+						dim Variant_stary
+
+						if ID_Kategoria_old.DisplayID <> ID_Kategoria.DisplayID then
+						
+							Variant_obecny =1
+							Variant_stary =1
+							
+						else 
+
+						
+							Variant_obecny = Vault.ObjectPropertyOperations.GetProperty( ObjVer, 1560).TypedValue.GetValueAsLocalizedText()
+							
+							Variant_stary = Vault.ObjectPropertyOperations.GetProperty( staryObjVer, 1560).TypedValue.GetValueAsLocalizedText()
+
+						end if
+
+
+
+						
+		
+						if Variant_obecny <> Variant_stary then
+							'dodajDoLog(Variant_obecny&" - "& ObjVer.Version &"---COUNTRY---"& staryObjVer.Version &" - "&Variant_stary )
+							Err.Raise mfscriptcancel, "You can't change variant of existing document."
+						end if
+						if( ID_Kategoria.DisplayID = "20") then
+							Temp_value4 = Vault.ObjectPropertyOperations.GetProperty( ObjVer, 1562).Value
+							
+							if (Vault.ObjectPropertyOperations.GetProperty( ObjVer, 1561).Value = true)  then
+								Temp_value4 = Temp_value4+1
+								Set myPropertyValue= CreateObject("MFilesAPI.PropertyValue")
+								myPropertyValue.PropertyDef = 1562
+								myPropertyValue.TypedValue.SetValue MFDatatypeInteger , Temp_value4
+								Vault.ObjectPropertyOperations.SetProperty ObjVer,myPropertyValue
+							end if
+		
+							Set myPropertyValue1= CreateObject("MFilesAPI.PropertyValue")
+							myPropertyValue1.PropertyDef = 1561
+							myPropertyValue1.TypedValue.SetValue MFDatatypeBoolean , false
+							Vault.ObjectPropertyOperations.SetProperty ObjVer,myPropertyValue1
+			
+							Temp_value = Vault.ObjectPropertyOperations.GetProperty( ObjVer, 1560).TypedValue.GetValueAsLocalizedText
+							Temp_value1 = Vault.ObjectPropertyOperations.GetProperty( ObjVer, 1484).TypedValue.GetValueAsLocalizedText
+							Temp_value2 = split( Temp_value1,"/")
+							if ( IsNull(Vault.ObjectPropertyOperations.GetProperty( ObjVer, 1560).Value) or IsEmpty(Vault.ObjectPropertyOperations.GetProperty( ObjVer, 1560).Value)) then
+								Temp_value3 = "MT/" & Temp_value2(2) & "/" & Temp_value2(1) & "_Tech/" & Temp_value2(0) & "/" & Temp_value4
+							else
+								Temp_value3 = "MT/" & Temp_value2(2) & "/" & Temp_value2(1) & "_Tech/" & Temp_value2(0) & "/" & Temp_value & Temp_value4
+							end if
+							Set myPropertyValue3= CreateObject("MFilesAPI.PropertyValue")
+							myPropertyValue3.PropertyDef = 1563
+							myPropertyValue3.TypedValue.SetValue MFDatatypeText , Temp_value3
+							Vault.ObjectPropertyOperations.SetProperty ObjVer,myPropertyValue3
+			
+							' Set last modified by user.
+							Set oLastModifiedBy = CreateObject("MFilesAPI.TypedValue")
+							oLastModifiedBy.SetValue MFDatatypeLookup, CurrentUserID	
+							Vault.ObjectPropertyOperations.SetLastModificationInfoAdmin ObjVer, True, oLastModifiedBy, False, Nothing	
+			
+						end if 'IF od OFERTA TECHNICZNA
+		
+					if( ID_Kategoria.DisplayID = "21") then
+						Temp_value4 = Vault.ObjectPropertyOperations.GetProperty( ObjVer, 1562).Value	
+						if (Vault.ObjectPropertyOperations.GetProperty( ObjVer, 1561).Value = true)  then
+							Temp_value4 = Temp_value4+1
+							Set myPropertyValue= CreateObject("MFilesAPI.PropertyValue")
+							myPropertyValue.PropertyDef = 1562
+							myPropertyValue.TypedValue.SetValue MFDatatypeInteger , Temp_value4
+							Vault.ObjectPropertyOperations.SetProperty ObjVer,myPropertyValue
+						end if
+		
+		
+						Temp_value = Vault.ObjectPropertyOperations.GetProperty( ObjVer, 1560).TypedValue.GetValueAsLocalizedText
+						Temp_value1 = Vault.ObjectPropertyOperations.GetProperty( ObjVer, 1484).TypedValue.GetValueAsLocalizedText
+						Temp_value2 = split( Temp_value1,"/")
+						if ( IsNull(Vault.ObjectPropertyOperations.GetProperty( ObjVer, 1560).Value) or IsEmpty(Vault.ObjectPropertyOperations.GetProperty( ObjVer, 1560).Value)) then
+							Temp_value3 = "MT/" & Temp_value2(2) & "/" & Temp_value2(1) & "/" & Temp_value2(0) & "/" &  Temp_value4
+						else
+							Temp_value3 = "MT/" & Temp_value2(2) & "/" & Temp_value2(1) & "/" & Temp_value2(0) & "/" & Temp_value & Temp_value4
+						end if
+						Set myPropertyValue3= CreateObject("MFilesAPI.PropertyValue")
+						myPropertyValue3.PropertyDef = 1563
+						myPropertyValue3.TypedValue.SetValue MFDatatypeText , Temp_value3
+						Vault.ObjectPropertyOperations.SetProperty ObjVer,myPropertyValue3
+		
+		
+						Set myPropertyValue1= CreateObject("MFilesAPI.PropertyValue")
+						myPropertyValue1.PropertyDef = 1561
+						myPropertyValue1.TypedValue.SetValue MFDatatypeBoolean , false
+						Vault.ObjectPropertyOperations.SetProperty ObjVer,myPropertyValue1
+			
+						' Set last modified by user.
+						Set oLastModifiedBy = CreateObject("MFilesAPI.TypedValue")
+						oLastModifiedBy.SetValue MFDatatypeLookup, CurrentUserID	
+						Vault.ObjectPropertyOperations.SetLastModificationInfoAdmin ObjVer, True, oLastModifiedBy, False, Nothing	
+		
+					end if 'If od OFERTA CENOWA
+		
+				
+				
+			end if 'If od DOCUMENT check
+		end if 'If versja wiêksza od 1
+	end if 'If od TEMPLATE check
+	end if 'If kontrola kategori dokumentu
+
+end if 'If od USER control
+
+
+'   ZAPIS DANYCH DO LOGA   ////////////////////
+sub dodajDoLog(message)
+		ForAppending = 8 
+		set objFSO = CreateObject("Scripting.FileSystemObject")
+		set objFile = objFSO.OpenTextFile("E:\test\log_S&M_basic.txt", ForAppending, True)
+		objFile.WriteLine(message)
+		objFile.Close
+end sub
+
+Function GetPropertyFromPropertyValues(propertyValues2, propertyIdToFind)
+	GetPropertyFromPropertyValues= false
+	For Each propertyValue in propertyValues2
+		If propertyValue.PropertyDef = propertyIdToFind Then
+			GetPropertyFromPropertyValues= true
+			Exit Function
+		End If
+	Next
+End Function
+
+Function IsTemplate(propertyValues1)
+	IsTemplate = Null
+	Dim propertyValue
+	propertyValue = GetPropertyFromPropertyValues(propertyValues1, 37)
+	If propertyValue = false Then
+		IsTemplate = false
+		Exit Function
+	End If
+	IsTemplate = true
+End Function

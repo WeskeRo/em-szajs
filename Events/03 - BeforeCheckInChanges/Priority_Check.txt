@@ -1,0 +1,251 @@
+if( CurrentUserID <> 42 AND CurrentUserID <> -101) then '1
+
+
+
+
+	if(ObjVer.Type = 206 ) then '2
+
+	Set myPropertyValues = Vault.ObjectPropertyOperations.GetProperties(ObjVer)
+		If IsTemplate(myPropertyValues) Then '3	
+	
+		else
+
+
+			dim test
+			test = GetPropertyFromPropertyValues( myPropertyValues , 11615)
+			if test = true then '4
+	
+				dodajDoLog("BeforeCheckInChanges - PriorityValueCheck ---- POCZ¥TEK")
+				Dim NowyPriorytet	
+				NowyPriorytet = Vault.ObjectPropertyOperations.GetProperty( ObjVer, 11615).TypedValue.GetValueAsLocalizedText
+				
+				if NowyPriorytet = "" then '5
+					Err.Raise mfscriptcancel, "Teraz kasujemy priorytet."
+				End if '5
+	
+	
+				dodajDoLog("BeforeCheckInChanges - PriorityValueCheck ---- NowyPriorytet: " &NowyPriorytet)
+				NowyPriorytet =  Right("000000" & NowyPriorytet,5)
+	
+	
+				Set myPropertyValue= CreateObject("MFilesAPI.PropertyValue")
+				myPropertyValue.PropertyDef = 11615
+				myPropertyValue.TypedValue.SetValue MFDatatypeText , NowyPriorytet
+				Vault.ObjectPropertyOperations.SetProperty ObjVer,myPropertyValue
+	
+				if  CheckPriority(206, NowyPriorytet) then '6
+					dim Prio_plus, Prio_minus
+					Prio_plus =	NowyPriorytet
+					Prio_minus = NowyPriorytet
+					znaleziono = true
+					znaleziono2 = true
+	
+					Do 
+						Prio_plus = Prio_plus+1
+						Prio_plus =  Right("000000" & Prio_plus,5)
+						znaleziono = CheckFreePriority(206, Prio_plus)
+					Loop While znaleziono = true
+	
+					Do 
+						Prio_minus = Prio_minus-1	
+						Prio_minus =  Right("000000" & Prio_minus,5)	
+						znaleziono2 = CheckFreePriority(206, Prio_minus)
+					Loop While znaleziono2 = true
+	
+	
+					Err.Raise mfscriptcancel, NowyPriorytet & " - ta wartoœæ jest zajêta. Najbli¿sze wolne wartoœci to: " &Prio_plus & " oraz " & Prio_minus
+					dodajDoLog("BeforeCheckInChanges - PriorityValueCheck ---- 2")	
+				end if '6
+				
+			end if '4
+		end if '3
+	end if '2
+dodajDoLog("BeforeCheckInChanges - PriorityValueCheck ---- KONIEC")
+end if '1
+
+'Err.Raise mfscriptcancel, "When 'Autonumber' field is set to 'NO', You need to provide manual number in form 'XXX/YEAR'."
+
+'   ZAPIS DANYCH DO LOGA   ////////////////////
+sub dodajDoLog(message)
+		ForAppending = 8
+		 
+		set objFSO = CreateObject("Scripting.FileSystemObject")
+		set objFile = objFSO.OpenTextFile("E:\test\log_PriorityValueCheck_basic.txt", ForAppending, True)
+	 
+		objFile.WriteLine(message)
+		objFile.Close
+end sub
+
+Function CheckPriority (ID_TypObiektu, wartosc)
+
+	Dim oSearchConditions1: Set oSearchConditions1 = CreateObject("MFilesAPI.SearchConditions") 
+	' Create a search condition for the object class (i.e., document in this case).
+	Dim oSearchCondition1: Set oSearchCondition1 = CreateObject("MFilesAPI.SearchCondition") 
+	oSearchCondition1.ConditionType = MFilesAPI.MFConditionType.MFConditionTypeEqual
+	oSearchCondition1.Expression.DataStatusValueType = MFStatusTypeObjectTypeID
+	oSearchCondition1.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeLookup, ID_TypObiektu
+	oSearchConditions1.Add -1, oSearchCondition1
+	
+	' Create a search condition for property SALES LEAD.
+	Dim oSearchCondition2: Set oSearchCondition2 = CreateObject("MFilesAPI.SearchCondition") 
+	oSearchCondition2.ConditionType = MFilesAPI.MFConditionType.MFConditionTypeEqual
+	oSearchCondition2.Expression.SetPropertyValueExpression 11615,  MFilesAPI.MFParentChildBehavior.MFParentChildBehaviorNone, Nothing
+	oSearchCondition2.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeText, wartosc
+	oSearchConditions1.Add -1, oSearchCondition2
+	
+	' Create a search condition for property STATUS = Approve (OUTGOING)
+'	Dim oSearchCondition3: Set oSearchCondition3 = CreateObject("MFilesAPI.SearchCondition") 
+'	oSearchCondition3.ConditionType = MFilesAPI.MFConditionType.MFConditionTypeEqual
+'	oSearchCondition3.Expression.SetPropertyValueExpression 11585,  MFilesAPI.MFParentChildBehavior.MFParentChildBehaviorNone, Nothing
+	
+	' Create a search condition for property DELETED. /nie bierzemy pod uwagê dokumentów usuniêtych
+'	Dim oSearchCondition4: Set oSearchCondition4 = CreateObject("MFilesAPI.SearchCondition") 
+'	oSearchCondition4.ConditionType = MFilesAPI.MFConditionType.MFConditionTypeEqual
+'	oSearchCondition4.Expression.DataStatusValueType = MFStatusTypeDeleted
+'	oSearchCondition4.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeBoolean, False
+'	oSearchConditions1.Add -1, oSearchCondition4	
+
+	Dim oObjectVersions1
+
+	Set oObjectVersions1 = Vault.ObjectSearchOperations.SearchForObjectsByConditions ( oSearchConditions1, MFilesAPI.MFSearchFlags.MFSearchFlagNone, false)
+	'dodajDoLog("Znalaz³em tyle dokumentów - " & oObjectVersions1.Count)
+	if oObjectVersions1.Count > 1 then
+		CheckPriority = true
+		Exit Function
+	else 
+		CheckPriority = false
+		Exit Function
+	end if
+
+
+
+
+End Function
+
+
+
+Function CheckFreePriority (ID_TypObiektu, wartosc)
+
+	Dim oSearchConditions1: Set oSearchConditions1 = CreateObject("MFilesAPI.SearchConditions") 
+	' Create a search condition for the object class (i.e., document in this case).
+	Dim oSearchCondition1: Set oSearchCondition1 = CreateObject("MFilesAPI.SearchCondition") 
+	oSearchCondition1.ConditionType = MFilesAPI.MFConditionType.MFConditionTypeEqual
+	oSearchCondition1.Expression.DataStatusValueType = MFStatusTypeObjectTypeID
+	oSearchCondition1.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeLookup, ID_TypObiektu
+	oSearchConditions1.Add -1, oSearchCondition1
+	
+	' Create a search condition for property SALES LEAD.
+	Dim oSearchCondition2: Set oSearchCondition2 = CreateObject("MFilesAPI.SearchCondition") 
+	oSearchCondition2.ConditionType = MFilesAPI.MFConditionType.MFConditionTypeEqual
+	oSearchCondition2.Expression.SetPropertyValueExpression 11615,  MFilesAPI.MFParentChildBehavior.MFParentChildBehaviorNone, Nothing
+	oSearchCondition2.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeText, wartosc
+	oSearchConditions1.Add -1, oSearchCondition2
+	
+	' Create a search condition for property STATUS = Approve (OUTGOING)
+'	Dim oSearchCondition3: Set oSearchCondition3 = CreateObject("MFilesAPI.SearchCondition") 
+'	oSearchCondition3.ConditionType = MFilesAPI.MFConditionType.MFConditionTypeEqual
+'	oSearchCondition3.Expression.SetPropertyValueExpression 11585,  MFilesAPI.MFParentChildBehavior.MFParentChildBehaviorNone, Nothing
+	
+	' Create a search condition for property DELETED. /nie bierzemy pod uwagê dokumentów usuniêtych
+'	Dim oSearchCondition4: Set oSearchCondition4 = CreateObject("MFilesAPI.SearchCondition") 
+'	oSearchCondition4.ConditionType = MFilesAPI.MFConditionType.MFConditionTypeEqual
+'	oSearchCondition4.Expression.DataStatusValueType = MFStatusTypeDeleted
+'	oSearchCondition4.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeBoolean, False
+'	oSearchConditions1.Add -1, oSearchCondition4	
+
+	Dim oObjectVersions1
+
+	Set oObjectVersions1 = Vault.ObjectSearchOperations.SearchForObjectsByConditions ( oSearchConditions1, MFilesAPI.MFSearchFlags.MFSearchFlagNone, false)
+	'dodajDoLog("Znalaz³em tyle dokumentów - " & oObjectVersions1.Count)
+	if oObjectVersions1.Count > 0 then
+		CheckFreePriority = true
+		Exit Function
+	else 
+		CheckFreePriority = false
+		Exit Function
+	end if
+
+
+
+
+End Function
+
+
+
+Function znajdzDokumenty(nr_statusu, id_SalesLead)
+
+
+
+Dim oSearchConditions1: Set oSearchConditions1 = CreateObject("MFilesAPI.SearchConditions") 
+' Create a search condition for the object class (i.e., document in this case).
+Dim oSearchCondition1: Set oSearchCondition1 = CreateObject("MFilesAPI.SearchCondition") 
+oSearchCondition1.ConditionType = MFilesAPI.MFConditionType.MFConditionTypeEqual
+oSearchCondition1.Expression.DataStatusValueType = MFStatusTypeObjectTypeID
+oSearchCondition1.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeLookup, MFilesAPI.MFBuiltInObjectType.MFBuiltInObjectTypeDocument
+oSearchConditions1.Add -1, oSearchCondition1
+
+' Create a search condition for property SALES LEAD.
+Dim oSearchCondition2: Set oSearchCondition2 = CreateObject("MFilesAPI.SearchCondition") 
+oSearchCondition2.ConditionType = MFilesAPI.MFConditionType.MFConditionTypeEqual
+oSearchCondition2.Expression.SetPropertyValueExpression 1484,  MFilesAPI.MFParentChildBehavior.MFParentChildBehaviorNone, Nothing
+oSearchCondition2.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeLookup, id_SalesLead
+oSearchConditions1.Add -1, oSearchCondition2
+
+' Create a search condition for property STATUS = Approve (OUTGOING)
+Dim oSearchCondition3: Set oSearchCondition3 = CreateObject("MFilesAPI.SearchCondition") 
+oSearchCondition3.ConditionType = MFilesAPI.MFConditionType.MFConditionTypeEqual
+oSearchCondition3.Expression.SetPropertyValueExpression 11585,  MFilesAPI.MFParentChildBehavior.MFParentChildBehaviorNone, Nothing
+
+' Create a search condition for property DELETED. /nie bierzemy pod uwagê dokumentów usuniêtych
+Dim oSearchCondition4: Set oSearchCondition4 = CreateObject("MFilesAPI.SearchCondition") 
+oSearchCondition4.ConditionType = MFilesAPI.MFConditionType.MFConditionTypeEqual
+oSearchCondition4.Expression.DataStatusValueType = MFStatusTypeDeleted
+oSearchCondition4.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeBoolean, False
+oSearchConditions1.Add -1, oSearchCondition4
+
+
+for i=nr_statusu To 10 Step 1
+
+'dodajDoLog("w forze - " & nr_statusu & " -- " & i )
+	oSearchCondition3.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeLookup, i
+	oSearchConditions1.Add -1, oSearchCondition3
+
+	Dim oObjectVersions1
+
+	Set oObjectVersions1 = Vault.ObjectSearchOperations.SearchForObjectsByConditions ( oSearchConditions1, MFilesAPI.MFSearchFlags.MFSearchFlagNone, true)
+	'dodajDoLog("Znalaz³em tyle dokumentów - " & oObjectVersions1.Count)
+	if oObjectVersions1.Count > 1 then
+		znajdzDokumenty = i
+		Exit Function
+	end if
+	
+	oSearchConditions1.Remove(3)
+
+
+
+next
+
+end Function
+
+
+Function GetPropertyFromPropertyValues( propertyValues1, propertyIdToFind)
+    GetPropertyFromPropertyValues= false
+    For Each propertyValue in propertyValues1
+        If propertyValue.PropertyDef = propertyIdToFind Then
+            GetPropertyFromPropertyValues= true
+            Exit Function
+        End If
+    Next
+End Function
+
+Function IsTemplate(propertyValues2)
+    IsTemplate = False
+    Dim propertyValue
+    propertyValue = GetPropertyFromPropertyValues(propertyValues2, 37)
+    If propertyValue = false Then
+	IsTemplate = false
+        Exit Function
+    End If
+    'IsTemplate = (LCase(propertyValue.Value.DisplayValue) = "yes")
+	IsTemplate = true
+End Function

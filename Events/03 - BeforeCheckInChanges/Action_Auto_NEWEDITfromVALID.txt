@@ -1,0 +1,246 @@
+if( CurrentUserID <> 42 AND CurrentUserID <> -101 And ObjVer.Type = 0) then
+Set myPropertyValues = Vault.ObjectPropertyOperations.GetProperties(ObjVer)
+If IsTemplate(myPropertyValues) Then	
+	
+	else
+
+
+dim test
+test = GetPropertyFromPropertyValues( myPropertyValues , 38)
+if test = true then
+Dim ID_przeplyw
+Set ID_przeplyw = Vault.ObjectPropertyOperations.GetProperty( ObjVer, 38).Value.GetValueAsLookup
+
+
+if (ID_przeplyw.DisplayID = "134" ) then
+
+
+' Moves object back to Draft state if approved object data has been changed.
+
+
+'Odszukanie wartoœci pola SALES LEAD
+
+
+'Set ID_GrupaKategori = myPropertyValues.SearchForProperty(101)
+
+Dim ID_GrupaKategori, ID_Kategori
+Set ID_GrupaKategori = Vault.ObjectPropertyOperations.GetProperty( ObjVer, 101).Value.GetValueAsLookup
+
+Set ID_Kategori = Vault.ObjectPropertyOperations.GetProperty( ObjVer, 100).Value.GetValueAsLookup
+'if (ID_Kategoria.DisplayID = "20" or ID_Kategoria.DisplayID = "21" ) then
+
+	dim metadana
+	dodajDoLog("Przed Cint")
+	przelacznik = Cint(ID_GrupaKategori.DisplayID)
+	dodajDoLog("Przelacznik = " & przelacznik)
+	Select Case przelacznik
+		Case 1 'Sales&Marketing
+
+			metadana = 1455
+			'ID w³aœciwoœci po ktorej bedziemy poszukiwaæ obiektu podrzêdnego
+			iPropertyId = 1484
+
+
+		Case 4 'Production
+
+			if(ID_Kategori.DisplayID = 156) then
+				metadana = 11604
+				'ID w³aœciwoœci po ktorej bedziemy poszukiwaæ obiektu podrzêdnego
+				iPropertyId = 1048
+				dodajDoLog("Typ obiektu 156 = " & iPropertyId)
+			elseif (ID_Kategori.DisplayID = 159) then
+				metadana = 11604
+				'ID w³aœciwoœci po ktorej bedziemy poszukiwaæ obiektu podrzêdnego
+				iPropertyId = 1050
+				dodajDoLog("Typ obiektu 159 = " & iPropertyId)
+			end if
+
+		Case 14 'Dokumenty QA
+
+			metadana = 11604
+			'ID w³aœciwoœci po ktorej bedziemy poszukiwaæ obiektu podrzêdnego
+			iPropertyId = 11607
+
+
+	End Select
+
+	dodajDoLog("Po selectcie")
+
+'Okreœlenie metadanej po której poszukujemy obiektu podrzêdnego - NR SalesLeada lub Numer w¹tka prod lub numer badania
+Set myPropertyValue = myPropertyValues.SearchForProperty(iPropertyId)
+
+
+'ID w³aœciwoœci po ktorej bedziemy poszukiwaæ obiektu podrzêdnego
+
+
+Dim myPropertyValues
+Dim myPropertyValue
+
+
+dodajDoLog("ID POLA = " & iPropertyId)
+
+
+    'Get the value as lookup reference. Odczytanie waroœci pola SALES LEAD
+    Dim oLookUpRef	
+	Set oLookUpRef = Vault.ObjectPropertyOperations.GetProperty( ObjVer, iPropertyId).TypedValue.GetValueAsLookup	
+
+	'Create ObjID
+	dim oObjID: Set oObjID = CreateObject("MFilesAPI.ObjID")
+	oObjID.ID   =  oLookUpRef.item 'ID for related Member object
+	oObjID.Type =  oLookUpRef.ObjectType 'related member ObjType
+	
+	'Get Latest version of external object. Pobranie aktualnego biektu SALES LEAD celem odczytania z niego metadanych
+	dim oMember_ObjVer
+	set oMember_ObjVer = vault.ObjectOperations.GetLatestObjVer(oObjID,true)
+
+'--------------------------------------------------------------------------------------------------------
+' ---  --  - Tu sprawdzane jest czy osoba która utworzy³a bierz¹cy dokument jest w³aœcicielem SalesLeada
+'--------------------------------------------------------------------------------------------------------
+dim ID_SalesLead_ResponsiblePerson
+dim ID_CurentDocument_Creator
+dodajDoLog("Sprawdzanie w³asciciela sales leada")
+
+' oMember_ObjVer <---- to jest obiekt Sales Lead powi¹zany z bierz¹cym dokumentem.
+
+dim ObiektWypluty_ResponsiblePerson  ' <---- to jest obiekt Responsible Person z SalesLeada
+Set ObiektWypluty_ResponsiblePerson = znajdzSupervisora (metadana , oMember_ObjVer)
+
+dodajDoLog("Przed")
+ID_SalesLead_ResponsiblePerson = Cint(Vault.ObjectPropertyOperations.GetProperty(ObiektWypluty_ResponsiblePerson.ObjVer, 1213).TypedValue.GetLookupID)
+
+dodajDoLog("Sales Lead responsible person to - " & ID_SalesLead_ResponsiblePerson)
+
+
+Set objCurentDocumentStatus = CreateObject("MFilesAPI.PropertyValue")
+objCurentDocumentStatus.PropertyDef = 39
+
+'CurentDocumentStatus = Cint(Vault.ObjectPropertyOperations.GetProperty( ObjVer, 39).TypedValue.GetValueAslookup)
+Dim iCurrentStateID
+iCurrentStateID = myPropertyValues.SearchForProperty(39).TypedValue.GetLookupID
+
+if (ID_SalesLead_ResponsiblePerson <> CurrentUserID)AND ( CurrentUserID <> 42 AND CurrentUserID <> -101) AND iCurrentStateID=287 then     ' CurentDocumentStatus.DisplayID = 287 then
+
+
+
+	
+' Double-checks that older versions exist on the server
+Dim ObjectVersions
+Set ObjectVersions = Vault.ObjectOperations.GetHistory(ObjVer.ObjID)
+If ObjectVersions.Count > 1 Then
+
+    Dim ObjVerPreviousVersion
+    Set ObjVerPreviousVersion = ObjectVersions.Item(2).ObjVer
+
+    ' Get the workflow state of the previous version
+    Dim iPreviousStateID
+    iPreviousStateID = Vault.ObjectPropertyOperations.GetProperty(ObjVerPreviousVersion, 39).TypedValue.GetLookupID
+
+	If iCurrentStateID = iPreviousStateID Then
+
+		Dim oPropValJobAppWF : Set  oPropValJobAppWF = CreateObject("MFilesAPI.PropertyValue")
+		oPropValJobAppWF.PropertyDef = MFilesAPI.MFBuiltInPropertyDef.MFBuiltInPropertyDefState
+		oPropValJobAppWF.TypedValue.SetValue MFDataTypeLookup, 282
+
+		vault.ObjectPropertyOperations.SetProperty objver, oPropValJobAppWF
+
+		' Set last modified by user.
+		Set oLastModifiedBy = CreateObject("MFilesAPI.TypedValue")
+		oLastModifiedBy.SetValue MFDatatypeLookup, CurrentUserID	
+		Vault.ObjectPropertyOperations.SetLastModificationInfoAdmin ObjVer, True, oLastModifiedBy, false, Nothing
+
+
+
+	End If
+End If
+End If
+End If
+
+else
+'Err.Raise mfscriptcancel, "false"
+end if	
+
+End If
+End If
+'   ZAPIS DANYCH DO LOGA   ////////////////////
+sub dodajDoLog(message)
+		ForAppending = 8 
+		set objFSO = CreateObject("Scripting.FileSystemObject")
+		set objFile = objFSO.OpenTextFile("E:\test\log_S&M_AUTO_NEW_EDIT.txt", ForAppending, True)
+		objFile.WriteLine(message)
+		objFile.Close
+end sub
+
+
+Function znajdzSupervisora(ID_WLASCIWOSCI, oOBJ_VER)
+
+Dim iPropertyId 
+
+'ID w³aœciwoœci po ktorej bedziemy poszukiwaæ obiektu podrzêdnego
+iPropertyId = ID_WLASCIWOSCI
+
+Dim myPropertyValues
+Dim myPropertyValue
+'Odszukanie wartoœci pola ID_WLASCIWOSCI
+
+    'Get the value as lookup reference.
+    Dim oLookUpRef	
+	Set oLookUpRef = Vault.ObjectPropertyOperations.GetProperty( oOBJ_VER, iPropertyId).TypedValue.GetValueAsLookup	
+
+
+	'Create ObjID
+	dim oObjID: Set oObjID = CreateObject("MFilesAPI.ObjID")
+	oObjID.ID   =  oLookUpRef.item 'ID for related Member object
+	oObjID.Type =  oLookUpRef.ObjectType 'related member ObjType
+	
+
+	' Initialize an array of search conditions.
+Dim oSearchConditions1: Set oSearchConditions1 = CreateObject("MFilesAPI.SearchConditions")  
+
+' Create a search condition for the object class (i.e., document in this case).
+Dim oSearchCondition1: Set oSearchCondition1 = CreateObject("MFilesAPI.SearchCondition") 
+oSearchCondition1.ConditionType = MFilesAPI.MFConditionType.MFConditionTypeEqual
+oSearchCondition1.Expression.DataStatusValueType = MFStatusTypeObjectID
+oSearchCondition1.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeInteger, oLookUpRef.item
+oSearchConditions1.Add -1, oSearchCondition1
+
+Dim oSearchCondition2: Set oSearchCondition2 = CreateObject("MFilesAPI.SearchCondition") 
+oSearchCondition2.ConditionType = MFilesAPI.MFConditionType.MFConditionTypeEqual
+oSearchCondition2.Expression.DataStatusValueType = MFStatusTypeObjectTypeID
+oSearchCondition2.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeLookup, 103
+oSearchConditions1.Add -1, oSearchCondition2
+
+
+Dim oObjectVersions1
+Set oObjectVersions1 = Vault.ObjectSearchOperations.SearchForObjectsByConditions ( oSearchConditions1, MFilesAPI.MFSearchFlags.MFSearchFlagNone, False)
+dodajDoLog("Znalaz³em Responsible Person dla nowego salesleada - "& oObjectVersions1.Count)
+dodajDoLog("Funkcja =znajdzSupervisora= zakonczy³a dzia³anie.")
+Set znajdzSupervisora = oObjectVersions1.Item(1)
+'-------------wypluj obiekt znaleziony --------------
+
+
+end Function
+
+
+
+
+Function GetPropertyFromPropertyValues(propertyValues1, propertyIdToFind)
+    GetPropertyFromPropertyValues= false
+    For Each propertyValue in propertyValues1
+        If propertyValue.PropertyDef = propertyIdToFind Then
+            GetPropertyFromPropertyValues= true
+            Exit Function
+        End If
+    Next
+End Function
+
+Function IsTemplate(propertyValues2)
+    IsTemplate = False
+    Dim propertyValue
+    propertyValue = GetPropertyFromPropertyValues(propertyValues2, 37)
+    If propertyValue = false Then
+	IsTemplate = false
+        Exit Function
+    End If
+    'IsTemplate = (LCase(propertyValue.Value.DisplayValue) = "yes")
+	IsTemplate = true
+End Function
