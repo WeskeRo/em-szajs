@@ -13,12 +13,12 @@ Dim myStatusValue
 dim PoprzedniaWartosc_ACTION_curr_doc;
 
 '- TU ZMIENIAĆ WARTOŚCI ACTION - ''------------------------------- ''------------------------------- ''------------------------------- '
-CONST ACTION_RESPO = 1
-CONST ACTION_OTHER = 9
-CONST PRIVILAGES = 16
+CONST ACTION_RESPO = 3
+CONST ACTION_OTHER = 3
+CONST PRIVILAGES = 13
 
 CONST WF = "BasicWorkflow"
-CONST ST = "New-Edit"
+CONST ST = "ManagerApprove-Accept"
 '------------------------------- ''------------------------------- ''------------------------------- ''------------------------------- '
 dodajDoLog("---------------------------")
 dodajDoLog(NOW & "- ENTER - "& WF &" - "& ST )

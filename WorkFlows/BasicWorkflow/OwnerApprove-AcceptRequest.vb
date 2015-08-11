@@ -1,354 +1,204 @@
+'------------------------------- ''------------------------------- ''------------------------------- ''------------------------------- '
 Dim iPropertyId
-
-dim CurentSalesLeadStatus 'aktualny status wątku do którego podpięty jest dokument.
+dim metadana
+Dim ID_GrupaKategori, ID_Kategori
+dim PreviousProcess_ACTION 'aktualny status wątku do którego podpięty jest dokument.
 dim PreviousDocumentStatus 'stastus dokumentu z którego nastąpiła zmiana
-dim CurentDocumentStatus 'status dokumentu na który nastąpiła zmiana
-dim objCurentDocumentStatus
+dim CurrentDocument_Action
+dim CurrentDocument_Action_Value
+dim ID_Process_ResponsiblePerson
+dim ID_CurentDocument_Creator
+dim ResponsiblePerson_Z_Procesu  ' <---- to jest obiekt Responsible Person z SalesLeada
+Dim myStatusValue
+dim PoprzedniaWartosc_ACTION_curr_doc;
 
+'- TU ZMIENIAĆ WARTOŚCI ACTION - ''------------------------------- ''------------------------------- ''------------------------------- '
+CONST ACTION_RESPO = 1
+CONST ACTION_OTHER = 1
+CONST PRIVILAGES = 17
+
+CONST WF = "BasicWorkflow"
+CONST ST = "OwnerApprove-Accept"
+'------------------------------- ''------------------------------- ''------------------------------- ''------------------------------- '
+dodajDoLog("---------------------------")
+dodajDoLog(NOW & "- ENTER - "& WF &" - "& ST )
+'------------------------------- ''------------------------------- ''------------------------------- ''------------------------------- '
 
 'Odszukanie wartości pola SALES LEAD
 Set myPropertyValues = Vault.ObjectPropertyOperations.GetProperties(ObjVer)
 
-'Set ID_GrupaKategori = myPropertyValues.SearchForProperty(101)
-
-Dim ID_GrupaKategori, ID_Kategori
 Set ID_GrupaKategori = Vault.ObjectPropertyOperations.GetProperty( ObjVer, 101).Value.GetValueAsLookup
 
 Set ID_Kategori = Vault.ObjectPropertyOperations.GetProperty( ObjVer, 100).Value.GetValueAsLookup
-'if (ID_Kategoria.DisplayID = "20" or ID_Kategoria.DisplayID = "21" ) then
 
-	dim metadana
-	dodajDoLog("Przed Cint")
-	przelacznik = Cint(ID_GrupaKategori.DisplayID)
-	dodajDoLog("Przelacznik = " & przelacznik)
-	Select Case przelacznik
-		Case 1 'Sales&Marketing
+przelacznik = Cint(ID_GrupaKategori.DisplayID)
 
+Select Case przelacznik
+	Case 1 'Sales&Marketing
+		if( ID_Kategori.DisplayID = 21 or ID_Kategori.DisplayID = 22 or ID_Kategori.DisplayID = 25 or ID_Kategori.DisplayID = 37 or ID_Kategori.DisplayID = 41 or ID_Kategori.DisplayID = 42 or ID_Kategori.DisplayID = 145 or ID_Kategori.DisplayID = 178 or ID_Kategori.DisplayID = 211 or ID_Kategori.DisplayID = 212 or ID_Kategori.DisplayID = 214 or ID_Kategori.DisplayID = 215 or ID_Kategori.DisplayID = 216 ) then 'Dokumenty do 
 			metadana = 1455
 			'ID właściwości po ktorej bedziemy poszukiwać obiektu podrzędnego
-			iPropertyId = 1484
-
-
-		Case 4 'Production
-
-			if(ID_Kategori.DisplayID = 156) then
-				metadana = 11604
-				'ID właściwości po ktorej bedziemy poszukiwać obiektu podrzędnego
-				iPropertyId = 1048
-				dodajDoLog("Typ obiektu 156 = " & iPropertyId)
-			elseif (ID_Kategori.DisplayID = 159) then
-				metadana = 11604
-				'ID właściwości po ktorej bedziemy poszukiwać obiektu podrzędnego
-				iPropertyId = 1050
-				dodajDoLog("Typ obiektu 159 = " & iPropertyId)
-			end if
-
-
-	End Select
-
-	dodajDoLog("Po selectci")
-
-Set myPropertyValue = myPropertyValues.SearchForProperty(iPropertyId)
-
-
-
-'ID właściwości po ktorej bedziemy poszukiwać obiektu podrzędnego
-
-
-Dim myPropertyValues
-Dim myPropertyValue
-
-
-dodajDoLog("ID POLA = " & iPropertyId)
-
-
-    'Get the value as lookup reference. Odczytanie warości pola SALES LEAD
-    Dim oLookUpRef	
-	Set oLookUpRef = Vault.ObjectPropertyOperations.GetProperty( ObjVer, iPropertyId).TypedValue.GetValueAsLookup	
-
-    ' Resolve the target object type for the property value.
-    Dim oPropertyDef 
-	Set oPropertyDef = Vault.PropertyDefOperations.GetPropertyDef(myPropertyValue.PropertyDef)
-
-    Dim oValListObjType
-	Set oValListObjType = Vault.ValueListOperations.GetValueList(oPropertyDef.ValueList)
-
-	'Create ObjID
-	dim oObjID: Set oObjID = CreateObject("MFilesAPI.ObjID")
-	oObjID.ID   =  oLookUpRef.item 'ID for related Member object
-	oObjID.Type =  oLookUpRef.ObjectType 'related member ObjType
+			iPropertyId = 11677
+			dodajDoLog("Typ obiektu 156 = " & iPropertyId)
+		else  'Dokumenty do Sales Leada
+			metadana = 1455
+			'ID właściwości po ktorej bedziemy poszukiwać obiektu podrzędnego
+			iPropertyId = 11712
+			dodajDoLog("Typ obiektu 159 = " & iPropertyId)
+		End if
 	
-	'Get Latest version of external object. Pobranie aktualnego biektu SALES LEAD celem odczytania z niego metadanych
-	dim oMember_ObjVer
-	set oMember_ObjVer = vault.ObjectOperations.GetLatestObjVer(oObjID,true)
+	Case 4 'Production
+		if(ID_Kategori.DisplayID = 156) then 'Kategoria SZCZEGÓŁY PRODUKCJI
+			metadana = 11604
+			'ID właściwości po ktorej bedziemy poszukiwać obiektu podrzędnego
+			iPropertyId = 1048
+			dodajDoLog("Typ obiektu 156 = " & iPropertyId)
+		elseif (ID_Kategori.DisplayID = 159) then  'Kategoria NUMERY SERYJNE
+			metadana = 11604
+			'ID właściwości po ktorej bedziemy poszukiwać obiektu podrzędnego
+			iPropertyId = 1050
+			dodajDoLog("Typ obiektu 159 = " & iPropertyId)
+		elseif (ID_Kategori.DisplayID = 177 OR ID_Kategori.DisplayID = 196) then  'Kategoria UZGODNIENAIA TECHNICZNE
+			metadana = 11604
+			'ID właściwości po ktorej bedziemy poszukiwać obiektu podrzędnego
+			iPropertyId = 1048
+			dodajDoLog("Typ obiektu 177 = " & iPropertyId)
+		end if
+
+	Case 14 'Dokumenty QA
+		metadana = 11604
+		'ID właściwości po ktorej bedziemy poszukiwać obiektu podrzędnego
+		iPropertyId = 11607
+End Select
+
+' -  -  -  - Odszukiwanie obiektu na podstawie pola o ID "iPropertyId" w obecnym dokumencie.
+' -  -  -  - W praktyce jest to ProcesOfertowy, ProcesKomercyjny, ProcesProdukcyjny, etc, itd.
+set oProces_ObjVer =  LookupObject(iPropertyId, ObjVer) 'tutaj mamy obiekt nadrzędny saleslead, offeringproc commercial proc etc
 
 '--------------------------------------------------------------------------------------------------------
 ' ---  --  - Tu sprawdzane jest czy osoba która utworzyła bierzący dokument jest właścicielem SalesLeada
 '--------------------------------------------------------------------------------------------------------
-dim ID_SalesLead_ResponsiblePerson
-dim ID_CurentDocument_Creator
+
 dodajDoLog("Sprawdzanie własciciela sales leada")
+Set ResponsiblePerson_Z_Procesu = LookupObject (metadana , oProces_ObjVer)
 
-' oMember_ObjVer <---- to jest obiekt Sales Lead powiązany z bierzącym dokumentem.
-
-dim ObiektWypluty_ResponsiblePerson  ' <---- to jest obiekt Responsible Person z SalesLeada
-Set ObiektWypluty_ResponsiblePerson = znajdzSupervisora (metadana , oMember_ObjVer)
-
-dim ObiektWypluty_Manager  ' <---- to jest obiekt Responsible Person z SalesLeada
-Set ObiektWypluty_Manager = znajdzSupervisora (1162, oMember_ObjVer)
-
-
-
-ID_SalesLead_ResponsiblePerson = Cint(Vault.ObjectPropertyOperations.GetProperty( ObiektWypluty_ResponsiblePerson.ObjVer, 1213).TypedValue.GetLookupID)
+ID_Process_ResponsiblePerson = Cint(Vault.ObjectPropertyOperations.GetProperty( ResponsiblePerson_Z_Procesu, 1213).TypedValue.GetLookupID)
 ID_CurentDocument_Creator = Cint(myPropertyValues.SearchForProperty(MFBuiltInPropertyDefCreatedBy).TypedValue.GetLookupID)
 
-dodajDoLog("Sales Lead responsible person to - " & ID_SalesLead_ResponsiblePerson)
-dodajDoLog("Obecny dokument został utworzony przez - " & ID_CurentDocument_Creator)
 
+'----------------USTAWIANIE POLA ACTION W AKTUALNYM DOMUMENCIE------------------
 
-Set objCurentDocumentStatus = CreateObject("MFilesAPI.PropertyValue")
-objCurentDocumentStatus.PropertyDef = 11585
+Set CurrentDocument_Action = CreateObject("MFilesAPI.PropertyValue")
+CurrentDocument_Action.PropertyDef = 11585
 
-
-
-
-
-	'Create the current user ID as typed value
-	Dim typed: Set typed = CreateObject("MFilesAPI.TypedValue")
-	Dim oLUUsers: Set oLUUsers = CreateObject("MFilesAPI.Lookups")
-	Dim oLUOneUser: Set oLUOneUser = CreateObject("MFilesAPI.Lookup")
-	
-
-if ID_SalesLead_ResponsiblePerson = ID_CurentDocument_Creator then
-	objCurentDocumentStatus.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeLookup, 1
-	
-
+if ID_Process_ResponsiblePerson = CurrentUserID then
+	CurrentDocument_Action.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeLookup, ACTION_RESPO	
+	CurrentDocument_Action_Value = ACTION_RESPO
 else 
-	objCurentDocumentStatus.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeLookup, 1
-	
-
-
-
-
-
-
-
-
-
-
-
+	CurrentDocument_Action.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeLookup, ACTION_OTHER
+	CurrentDocument_Action_Value = ACTION_OTHER
 end if
-Vault.ObjectPropertyOperations.SetProperty ObjVer, objCurentDocumentStatus
 
+Vault.ObjectPropertyOperations.SetProperty ObjVer, CurrentDocument_Action
+'----------------KONIEC USTAWIANIA POLA ACTION W AKTUALNYM DOMUMENCIE ------------------
 
+PreviousProcess_ACTION = Cint(Vault.ObjectPropertyOperations.GetProperty( oProces_ObjVer, 11585).TypedValue.GetValueAsLocalizedText)
 
+If ObjVer.Version > 1 then
+	Dim staryObjVer : Set staryObjVer = CreateObject("MFilesAPI.ObjVer")
+	Set staryObjVer = ObjVer.Clone()
+	staryObjVer.Version = ObjVer.Version - 1 
+	Set myPropertyValues1 = Vault.ObjectPropertyOperations.GetProperties(staryObjVer)
 
+	Set PoprzedniaWartosc_ACTION_curr_doc = myPropertyValues1.SearchForProperty(11585)
+	dodajDoLog("Przed PD status")
+End if	
 
-'--------------------------------------------------------------------------------------------------------
-' 
-'--------------------------------------------------------------------------------------------------------
+if ( IsNull(PoprzedniaWartosc_ACTION_curr_doc) or IsEmpty(PoprzedniaWartosc_ACTION_curr_doc)) then 
+	PreviousDocumentStatus = 11    'Jeśli wersja dokumentu = 1
+elseif ( IsNull(PoprzedniaWartosc_ACTION_curr_doc.TypedValue) or IsEmpty(PoprzedniaWartosc_ACTION_curr_doc.TypedValue)) then 
+	PreviousDocumentStatus = 11    'Jeśli wersja dokumentu > 1 ale pole StatusDokumentu nie ma wartości
+else
+	PreviousDocumentStatus = Cint(PoprzedniaWartosc_ACTION_curr_doc.TypedValue.GetValueAsLocalizedText)
+End if
 
-	CurentSalesLeadStatus = Cint(Vault.ObjectPropertyOperations.GetProperty( oMember_ObjVer, 11585).TypedValue.GetValueAsLocalizedText)
-	CurentDocumentStatus = Cint(Vault.ObjectPropertyOperations.GetProperty( ObjVer, 11585).TypedValue.GetValueAsLocalizedText)
+dodajDoLog("CURRENT PROCESS ACTION - "& PreviousProcess_ACTION)
+dodajDoLog("CurrentDocument_Action - "& CurrentDocument_Action_Value)
 
-	Dim oPropValsNew
-	Dim myStatusValue
-	dim moja
-
-	If ObjVer.Version > 1 then
-
-		Dim staryObjVer
-		Set staryObjVer = ObjVer.Clone()
-		dim ver
-		ver= staryObjVer.Version
-		ver=ver-1 
-		staryObjVer.Version = ver 
-		Set myPropertyValues1 = Vault.ObjectPropertyOperations.GetProperties(staryObjVer)
-
-		'id naszego salesleada oObjID.ID
-		
-		Set moja = myPropertyValues1.SearchForProperty(11585)
-		dodajDoLog("Przed PD status")
-	End if	
-
-	if ( IsNull(moja) or IsEmpty(moja)) then 
-		PreviousDocumentStatus = 11    'Jeśli wersja dokumentu = 1
-	elseif ( IsNull(moja.TypedValue) or IsEmpty(moja.TypedValue)) then 
-		PreviousDocumentStatus = 11    'Jeśli wersja dokumentu > 1 ale pole StatusDokumentu nie ma wartości
-	else
-		PreviousDocumentStatus = Cint(moja.TypedValue.GetValueAsLocalizedText)
-	End if
-
-	if CurentSalesLeadStatus > CurentDocumentStatus then
-		
-		Set oPropValsNew = CreateObject("MFilesAPI.PropertyValues")
-		Set myStatusValue= CreateObject("MFilesAPI.PropertyValue")
-		myStatusValue.PropertyDef = 11585
-		myStatusValue.TypedValue.SetValue MFDatatypeLookup , CurentDocumentStatus
+if PreviousProcess_ACTION > CurrentDocument_Action_Value then
+	'USTAWIANIE ACTION W PROCESIE gdy action obecnego dokumentu ma wyższy priorytet od dotychczasowego priorytetu PROCESU
+	Set CurrentProcess_Action= CreateObject("MFilesAPI.PropertyValue")
+	CurrentProcess_Action.PropertyDef = 11585
+	CurrentProcess_Action.TypedValue.SetValue MFDatatypeLookup , CurrentDocument_Action_Value
 	
-		oPropValsNew.Add -1, myStatusValue
-		Vault.ObjectPropertyOperations.SetProperties oMember_ObjVer, oPropValsNew
-		
-	Elseif CurentSalesLeadStatus = PreviousDocumentStatus then
-
-
-		dodajDoLog("Przed funkcją - ZNAJDZ DOKUMENTY")
-		ib = Cint(znajdzDokumenty( PreviousDocumentStatus, oObjID.ID))
-		dodajDoLog("Po wyszukiwaniu statusów - " & ib)
-		if ib = 0 then 
-			ib =CurentDocumentStatus
-		end if
-		Set oPropValsNew = CreateObject("MFilesAPI.PropertyValues")
-		Set myStatusValue= CreateObject("MFilesAPI.PropertyValue")
-		myStatusValue.PropertyDef = 11585
-		myStatusValue.TypedValue.SetValue MFDatatypeLookup , ib
+	Vault.ObjectOperations.CheckOut(oProces_ObjVer.ObjID)
+	Set oProces_ObjVer = vault.ObjectOperations.GetLatestObjVer(oProces_ObjVer.ObjID, true)
+	Vault.ObjectPropertyOperations.SetProperty oProces_ObjVer, CurrentProcess_Action
+	Vault.ObjectOperations.CheckIn(oProces_ObjVer)
 	
-		oPropValsNew.Add -1, myStatusValue
-		Vault.ObjectPropertyOperations.SetProperties oMember_ObjVer, oPropValsNew
-
-	End if
-
-
-
-				' Set last modified by user.
-		Set oLastModifiedBy = CreateObject("MFilesAPI.TypedValue")
-		oLastModifiedBy.SetValue MFDatatypeLookup, CurrentUserID	
-		Vault.ObjectPropertyOperations.SetLastModificationInfoAdmin ObjVer, True, oLastModifiedBy, false, Nothing
-
-
-
- '   ZAPIS DANYCH DO LOGA   ////////////////////
-sub dodajDoLog(message)
-		ForAppending = 8
-		 
-		set objFSO = CreateObject("Scripting.FileSystemObject")
-		set objFile = objFSO.OpenTextFile("E:\test\USTAW_ACTION_LOOP.txt", ForAppending, True)
-	 
-		objFile.WriteLine(message)
-		objFile.Close
-end sub
-
-
-Function znajdzDokumenty(nr_statusu, id_SalesLead)
-
-
-
-Dim oSearchConditions1: Set oSearchConditions1 = CreateObject("MFilesAPI.SearchConditions") 
-' Create a search condition for the object class (i.e., document in this case).
-Dim oSearchCondition1: Set oSearchCondition1 = CreateObject("MFilesAPI.SearchCondition") 
-oSearchCondition1.ConditionType = MFilesAPI.MFConditionType.MFConditionTypeEqual
-oSearchCondition1.Expression.DataStatusValueType = MFStatusTypeObjectTypeID
-oSearchCondition1.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeLookup, MFilesAPI.MFBuiltInObjectType.MFBuiltInObjectTypeDocument
-oSearchConditions1.Add -1, oSearchCondition1
-
-' Create a search condition for property SALES LEAD.
-Dim oSearchCondition2: Set oSearchCondition2 = CreateObject("MFilesAPI.SearchCondition") 
-oSearchCondition2.ConditionType = MFilesAPI.MFConditionType.MFConditionTypeEqual
-oSearchCondition2.Expression.SetPropertyValueExpression 1484,  MFilesAPI.MFParentChildBehavior.MFParentChildBehaviorNone, Nothing
-oSearchCondition2.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeLookup, id_SalesLead
-oSearchConditions1.Add -1, oSearchCondition2
-
-
-' Create a search condition for property STATUS = Approve (OUTGOING)
-Dim oSearchCondition3: Set oSearchCondition3 = CreateObject("MFilesAPI.SearchCondition") 
-oSearchCondition3.ConditionType = MFilesAPI.MFConditionType.MFConditionTypeEqual
-oSearchCondition3.Expression.SetPropertyValueExpression 11585,  MFilesAPI.MFParentChildBehavior.MFParentChildBehaviorNone, Nothing
-
-' Create a search condition for property DELETED. /nie bierzemy pod uwagę dokumentów usuniętych
-Dim oSearchCondition4: Set oSearchCondition4 = CreateObject("MFilesAPI.SearchCondition") 
-oSearchCondition4.ConditionType = MFilesAPI.MFConditionType.MFConditionTypeEqual
-oSearchCondition4.Expression.DataStatusValueType = MFStatusTypeDeleted
-oSearchCondition4.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeBoolean, False
-oSearchConditions1.Add -1, oSearchCondition4
-
-for i=nr_statusu To 10 Step 1
-
-dodajDoLog("w forze - " & nr_statusu & " -- " & i )
-	oSearchCondition3.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeLookup, i
-	oSearchConditions1.Add -1, oSearchCondition3
-
-	Dim oObjectVersions1
-
-	Set oObjectVersions1 = Vault.ObjectSearchOperations.SearchForObjectsByConditions ( oSearchConditions1, MFilesAPI.MFSearchFlags.MFSearchFlagNone, true)
-	dodajDoLog("Znalazłem tyle dokumentów - " & oObjectVersions1.Count)
-	if oObjectVersions1.Count > 0 then
-		znajdzDokumenty = i
-		Exit Function
+Elseif PreviousProcess_ACTION = PreviousDocumentStatus then
+	'USTAWIANIE ACTION W PROCESIE gdy priorytety poprzednich wersji procesu i dokumentu były równe
+	ib = Cint(znajdzDokumenty( PreviousDocumentStatus, oProces_ObjVer.ID, iPropertyId))
+	'dodajDoLog("Po wyszukiwaniu statusów - " & ib)
+	if ib = 0 then 
+		ib =CurrentDocument_Action_Value
 	end if
-	
-	oSearchConditions1.Remove(3)
+
+	Set CurrentProcess_Action= CreateObject("MFilesAPI.PropertyValue")
+	CurrentProcess_Action.PropertyDef = 11585
+	CurrentProcess_Action.TypedValue.SetValue MFDatatypeLookup , ib
+
+	Vault.ObjectPropertyOperations.SetProperty oProces_ObjVer, CurrentProcess_Action
+End if
+
+'----USTAWIANIE DOSTĘPU DO DOKUMENTU.
+Vault.ObjectOperations.ChangePermissionsToNamedACL ObjVer, PRIVILAGES, false
+
+'----USTAWIANIE właściwości OSTATNIO MODYFIKOWANY PRZEZ:"
+Set oLastModifiedBy = CreateObject("MFilesAPI.TypedValue")
+oLastModifiedBy.SetValue MFDatatypeLookup, CurrentUserID	
+Vault.ObjectPropertyOperations.SetLastModificationInfoAdmin ObjVer, True, oLastModifiedBy, false, Nothing
+
+dodajDoLog(NOW & "- LEAVE - "& WF &" - "& ST )
 
 
 
-next
 
-end Function
 
+
+
+'   ZAPIS DANYCH DO LOGA   ////////////////////
+sub dodajDoLog(message)
+	ForAppending = 8
+	 
+	set objFSO = CreateObject("Scripting.FileSystemObject")
+	set objFile = objFSO.OpenTextFile("E:\test\LOG\WorkFlows\"& WF & "\"& ST &".log", ForAppending, True)
+ 
+	objFile.WriteLine(message)
+	objFile.Close
+end sub
 
 '-----------------------------------------------------------------------------------------------------------------------------------
 '       Funkcja wyszukująca ID użytkownika na podstawie pola M-Files user
 '
 '
 '-----------------------------------------------------------------------------------------------------------------------------------
-
-
-Function znajdzSupervisora(ID_WLASCIWOSCI, oOBJ_VER)
-
-Dim iPropertyId 
-
-'ID właściwości po ktorej bedziemy poszukiwać obiektu podrzędnego
-iPropertyId = ID_WLASCIWOSCI
-
-Dim myPropertyValues
-Dim myPropertyValue
-dodajDoLog("Wszedłem do funkcji")
-'Odszukanie wartości pola ID_WLASCIWOSCI
-'Set myPropertyValues = Vault.ObjectPropertyOperations.GetProperties(oOBJ_VER)
-'Set myPropertyValue = myPropertyValues.SearchForProperty(iPropertyId)
-
-    'Get the value as lookup reference.
-    Dim oLookUpRef	
-	Set oLookUpRef = Vault.ObjectPropertyOperations.GetProperty( oOBJ_VER, iPropertyId).TypedValue.GetValueAsLookup	
-
+Function LookupObject(ID_Metadana, oOBJ_VER)
+    
+	Dim oLookUpRef	
+	Set oLookUpRef = Vault.ObjectPropertyOperations.GetProperty( oOBJ_VER, ID_Metadana).TypedValue.GetValueAsLookup	
 
 	'Create ObjID
 	dim oObjID: Set oObjID = CreateObject("MFilesAPI.ObjID")
 	oObjID.ID   =  oLookUpRef.item 'ID for related Member object
 	oObjID.Type =  oLookUpRef.ObjectType 'related member ObjType
+
+	'dim oProces_ObjVer
+	'set oProces_ObjVer = Vault.ObjectOperations.GetLatestObjVer(oObjID,true)  '
 	
-	'Get Latest version of external object
-'	dim oMember_ObjVer
-'	set oMember_ObjVer = vault.ObjectOperations.GetLatestObjVer(oObjID,true)
-
-
-	' Initialize an array of search conditions.
-Dim oSearchConditions1: Set oSearchConditions1 = CreateObject("MFilesAPI.SearchConditions")  
-
-' Create a search condition for the object class (i.e., document in this case).
-Dim oSearchCondition1: Set oSearchCondition1 = CreateObject("MFilesAPI.SearchCondition") 
-oSearchCondition1.ConditionType = MFilesAPI.MFConditionType.MFConditionTypeEqual
-oSearchCondition1.Expression.DataStatusValueType = MFStatusTypeObjectID
-oSearchCondition1.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeInteger, oLookUpRef.item
-oSearchConditions1.Add -1, oSearchCondition1
-
-Dim oSearchCondition2: Set oSearchCondition2 = CreateObject("MFilesAPI.SearchCondition") 
-oSearchCondition2.ConditionType = MFilesAPI.MFConditionType.MFConditionTypeEqual
-oSearchCondition2.Expression.DataStatusValueType = MFStatusTypeObjectTypeID
-oSearchCondition2.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeLookup, 103
-oSearchConditions1.Add -1, oSearchCondition2
-
-
-Dim oObjectVersions1
-Set oObjectVersions1 = Vault.ObjectSearchOperations.SearchForObjectsByConditions ( oSearchConditions1, MFilesAPI.MFSearchFlags.MFSearchFlagNone, False)
-dodajDoLog("Znalazłem Responsible Person dla nowego salesleada - "& oObjectVersions1.Count)
-dodajDoLog("Funkcja =znajdzSupervisora= zakonczyła działanie.")
-Set znajdzSupervisora = oObjectVersions1.Item(1)
-'-------------wypluj obiekt znaleziony --------------
-
-
-end Function
-
-
+	Set LookupObject = Vault.ObjectOperations.GetLatestObjVer(oObjID,true)
+	
+End Function
 
 '-----------------------------------------------------------------------------------------------------------------------------------------------------
 '
@@ -401,3 +251,50 @@ Sub pAssignment(szDescriptionL, szAssignedToL, szMonitoredByL, szLinkDocID)
 End Sub
 
 
+
+Function znajdzDokumenty(nr_statusu, id_SalesLead, ID_Meta)
+	Dim oSearchConditions1: Set oSearchConditions1 = CreateObject("MFilesAPI.SearchConditions") 
+	' Create a search condition for the object class (i.e., document in this case).
+	Dim oSearchCondition1: Set oSearchCondition1 = CreateObject("MFilesAPI.SearchCondition") 
+	oSearchCondition1.ConditionType = MFilesAPI.MFConditionType.MFConditionTypeEqual
+	oSearchCondition1.Expression.DataStatusValueType = MFStatusTypeObjectTypeID
+	oSearchCondition1.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeLookup, MFilesAPI.MFBuiltInObjectType.MFBuiltInObjectTypeDocument
+	oSearchConditions1.Add -1, oSearchCondition1
+
+	' Create a search condition for property PROCES.
+	Dim oSearchCondition2: Set oSearchCondition2 = CreateObject("MFilesAPI.SearchCondition") 
+	oSearchCondition2.ConditionType = MFilesAPI.MFConditionType.MFConditionTypeEqual
+	oSearchCondition2.Expression.SetPropertyValueExpression ID_Meta,  MFilesAPI.MFParentChildBehavior.MFParentChildBehaviorNone, Nothing
+	oSearchCondition2.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeLookup, id_SalesLead
+	oSearchConditions1.Add -1, oSearchCondition2
+
+	' Create a search condition for property DELETED. /nie bierzemy pod uwagę dokumentów usuniętych
+	Dim oSearchCondition4: Set oSearchCondition4 = CreateObject("MFilesAPI.SearchCondition") 
+	oSearchCondition4.ConditionType = MFilesAPI.MFConditionType.MFConditionTypeEqual
+	oSearchCondition4.Expression.DataStatusValueType = MFStatusTypeDeleted
+	oSearchCondition4.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeBoolean, False
+	oSearchConditions1.Add -1, oSearchCondition4
+
+	' Create a search condition for property STATUS = Approve (OUTGOING)
+	Dim oSearchCondition3: Set oSearchCondition3 = CreateObject("MFilesAPI.SearchCondition") 
+	oSearchCondition3.ConditionType = MFilesAPI.MFConditionType.MFConditionTypeEqual
+	oSearchCondition3.Expression.SetPropertyValueExpression 11585,  MFilesAPI.MFParentChildBehavior.MFParentChildBehaviorNone, Nothing
+
+	for i=nr_statusu To 10 Step 1
+
+	'dodajDoLog("w forze - " & nr_statusu & " -- " & i )
+		oSearchCondition3.TypedValue.SetValue MFilesAPI.MFDataType.MFDatatypeLookup, i
+		oSearchConditions1.Add -1, oSearchCondition3
+
+		Dim oObjectVersions1
+
+		Set oObjectVersions1 = Vault.ObjectSearchOperations.SearchForObjectsByConditions ( oSearchConditions1, MFilesAPI.MFSearchFlags.MFSearchFlagNone, true)
+		'dodajDoLog("Znalazłem tyle dokumentów - " & oObjectVersions1.Count)
+		if oObjectVersions1.Count > 0 then
+			znajdzDokumenty = i
+			Exit Function
+		end if
+		
+		oSearchConditions1.Remove(4)
+	next
+end Function
