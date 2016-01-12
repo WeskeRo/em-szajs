@@ -1,0 +1,22 @@
+{
+    "Triggers": [
+        {
+            "PropertyDefinitionID": 1065,
+            "Values": [
+					{
+                    "ValueListItemID": 1,
+                    "AdditionalPropertyDefinitionIDs": [],
+                    "RequiredPropertyDefinitionIDs": [11682,11683,11684,11686]
+					},
+					{
+                    "ValueListItemID": 2,
+                    "AdditionalPropertyDefinitionIDs": [],
+                    "RequiredPropertyDefinitionIDs": [11688,11689,11684]
+					}
+            ]
+        }
+    ],
+    "TriggeredObjectTypes": [
+        220
+    ]
+}

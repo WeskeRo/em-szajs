@@ -1,0 +1,26 @@
+{
+    "Groups":
+            {
+                "PaymentTerms":{
+                                    "Title"         : {
+                                                        "Content":{
+                                                                    "plk": "Warunki płatnosci",
+                                                                    "eng": "Payment terms"
+                                                                    }
+                                                        },
+                                    "IsCollapsible" : false,
+                                    "IsCollapsibleByDefault"    :   false,
+                                    "HasHeader" : true,
+                                    "IsDefault" : false
+                                }
+            },
+    "Properties":
+                {
+                    "1065":{"Group":"PaymentTerms","Priority":1},
+                    "11682":{"Group":"PaymentTerms","Priority":2},
+                    "11683":{"Group":"PaymentTerms","Priority":3}, 
+                    "11684":{"Group":"PaymentTerms","Priority":4},
+                    "11686":{"Group":"PaymentTerms","Priority":5},
+
+                }
+}
